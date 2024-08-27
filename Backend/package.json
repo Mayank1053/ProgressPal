@@ -1,0 +1,28 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Backend for ProgressPal",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --env-file=.env src/index.js"
+  },
+  "author": "Mayank1053",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.3"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.17.0",
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^2.4.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.3",
+    "mongoose-aggregate-paginate-v2": "^1.1.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
