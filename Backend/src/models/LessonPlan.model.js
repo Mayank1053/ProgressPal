@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const lessonPlanSchema = new mongoose.Schema(
   {
     topics: {
-      type: {},
+      type: [{}],
       required: true,
 
       title: {
@@ -32,10 +32,6 @@ const lessonPlanSchema = new mongoose.Schema(
         end_date: {
           type: Date,
         },
-        progress: {
-          type: Number,
-          default: 0,
-        },
         locked: {
           type: Boolean,
           default: true,
@@ -48,12 +44,16 @@ const lessonPlanSchema = new mongoose.Schema(
         type: Date,
       },
       progress: {
-        type: Number,
-        default: 0,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Progress",
       },
       locked: {
         type: Boolean,
         default: false,
+      },
+      quiz: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "KnowledgeCheck",
       },
       topicsToReview: {
         // topics to review after the quiz and answered incorrectly
