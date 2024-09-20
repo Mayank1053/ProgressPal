@@ -10,6 +10,6 @@ const router = Router();
 
 router.use(verifyJwtToken);
 
-router.route("/:subtopic").get(knowledgeCheck).post(createKnowledgeCheck).update(saveKnowledgeCheck);
+router.route("/:subtopic").get(knowledgeCheck).post(createKnowledgeCheck).patch(saveKnowledgeCheck);
 
 export default router;
