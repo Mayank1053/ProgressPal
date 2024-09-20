@@ -17,10 +17,12 @@ app.use(cookieParser());
 // Routes import
 import userRoutes from "./routes/user.routes.js";
 import lessonRoutes from "./routes/lesson.routes.js";
+import KnowledgeCheck from "./routes/knowledgeCheck.routes.js";
 
 // Routes declaration
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/lessons", lessonRoutes);
+app.use("/api/v1/knowledge-check", KnowledgeCheck);
 
 
 export default app;
