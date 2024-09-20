@@ -101,6 +101,28 @@ const knowledgeCheckGenerationConfig = {
     "As an expert in educational content creation, your task is to generate a knowledge check in JSON format based on the provided lesson topic. The knowledge check should include a minimum of 8 and a maximum of 10 multiple-choice questions, with difficulty progressing from easy to hard. Each question should have the following structure: - 'question_text': The text of the question. - 'options': An array of four possible answers. - 'correct_answer': The index of the correct answer in the options array (0, 1, 2, or 3). - 'explanation': A brief explanation of why the correct answer is correct. The first few questions (1-3) should focus on basic concepts and be easier, while questions towards the end (8-10) should cover more advanced or nuanced topics, becoming progressively more challenging.",
 };
 
+const adaptive_recommendationGenerationConfig = {
+  model: "gemini-1.5-flash-exp-0827",
+  generationConfig: {
+    temperature: 1,
+    topP: 0.95,
+    topK: 64,
+    maxOutputTokens: 8192,
+    responseMimeType: "application/json",
+    responseSchema: {
+      type: "object",
+      properties: {
+        adaptive_recommendation: {
+          type: "string",
+        },
+      },
+      required: ["adaptive_recommendation"],
+    },
+  },
+  systemInstruction:
+    "As an expert in educational content creation, your task is to generate an adaptive recommendation in JSON format based on the user's performance in a knowledge check. The prompt contains the user's wrong answers from the knowledge check. Your recommendation should provide guidance on areas where the user needs to improve and suggest additional resources or study materials to help them better understand the concepts. The recommendation should be tailored to the user's specific knowledge gaps and learning preferences. **IMPORTANT NOTE:** /n - The adaptive recommendation should be concise and actionable, focusing on key areas for improvement based on the user's performance in the knowledge check. /n - Provide clear and relevant suggestions to help the user enhance their understanding of the subject matter. /n - Consider the user's learning style and preferences when formulating the recommendation to ensure it is engaging and effective. /n - The recommendation should be informative and supportive, motivating the user to continue learning and improving their knowledge.",
+};
+
 const safetySettings = [
   {
     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -140,3 +162,5 @@ export const generateLessonPlan = (prompt) =>
   generateContent(prompt, lessonPlanGenerationConfig);
 export const generateKnowledgeCheck = (prompt) =>
   generateContent(prompt, knowledgeCheckGenerationConfig);
+export const generateAdaptiveRecommendation = (prompt) =>
+  generateContent(prompt, adaptive_recommendationGenerationConfig);

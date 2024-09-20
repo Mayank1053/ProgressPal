@@ -3,7 +3,10 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import KnowledgeCheck from "../models/knowledgeCheck.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
-import { generateKnowledgeCheck } from "../services/generativeAI.service.js";
+import {
+  generateKnowledgeCheck,
+  generateAdaptiveRecommendation,
+} from "../services/generativeAI.service.js";
 
 const createKnowledgeCheck = asyncHandler(async (req, res) => {
   const { subtopic } = req.params;
@@ -69,6 +72,13 @@ const saveKnowledgeCheck = asyncHandler(async (req, res) => {
   knowledgeCheck.attempted_at = new Date();
   knowledgeCheck.wrong_answered = wrong_answered;
 
+  // Generate adaptive recommendation based on wrong_answered questions
+  const adaptiveRecommendation = await generateAdaptiveRecommendation(
+    knowledgeCheck.wrong_answered.join(", ")
+  );
+
+  knowledgeCheck.adaptive_recommendation = adaptiveRecommendation;
+
   await knowledgeCheck.save();
 
   res
@@ -77,7 +87,5 @@ const saveKnowledgeCheck = asyncHandler(async (req, res) => {
       new ApiResponse(200, knowledgeCheck, "Knowledge Check saved successfully")
     );
 });
-
-// Generate adaptive_recommendation based on wrong_answered
 
 export { knowledgeCheck, createKnowledgeCheck, saveKnowledgeCheck };
