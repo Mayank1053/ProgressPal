@@ -47,7 +47,7 @@ const startCourse = asyncHandler(async (req, res) => {
 
   // 4. Add the lesson to the user model
   const user = await User.findById(req.user._id);
-  user.lessons.push(lesson._id);
+  user.lessons.current_lessons.push(lesson._id);
   await user.save();
 
   // 5. Send the lesson object in the response

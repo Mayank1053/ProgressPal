@@ -36,8 +36,14 @@ const userSchema = new mongoose.Schema(
       },
     },
     lessons: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Lesson",
+      current_lessons: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "Lesson",
+      },
+      completed_lessons: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "Lesson",
+      },
     },
     points: {
       type: Number,
