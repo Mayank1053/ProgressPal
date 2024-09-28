@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import KnowledgeCheck from "../models/knowledgeCheck.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
+import Progress from "../models/progress.model.js";
 import {
   generateKnowledgeCheck,
   generateAdaptiveRecommendation,
@@ -71,6 +72,15 @@ const saveKnowledgeCheck = asyncHandler(async (req, res) => {
   knowledgeCheck.score = score;
   knowledgeCheck.attempted_at = new Date();
   knowledgeCheck.wrong_answered = wrong_answered;
+
+  // Add the date & score to the progress model
+  const progress = await Progress.findOne({ user: req.user._id });
+
+  progress.daily_progress = {
+    date: new Date(),
+    score: score,
+  };
+  await progress.save();
 
   // Generate adaptive recommendation based on wrong_answered questions
   const adaptiveRecommendation = await generateAdaptiveRecommendation(
