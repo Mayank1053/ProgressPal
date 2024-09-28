@@ -12,7 +12,10 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      match: [/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, "Invalid email"],
+      match: [
+        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+        "Invalid email",
+      ],
       required: true,
       unique: true,
       trim: true,
@@ -29,28 +32,35 @@ const userSchema = new mongoose.Schema(
     },
     preferences: {
       dailyReminderTime: {
-        type: Date,
+        // Time in HH:MM format
+        type: String,
       },
       language: {
         type: String,
       },
     },
-    lessons: {
-      current_lessons: {
+    Courses: {
+      current_courses: {
+        // Courses currently being taken by the user
         type: [mongoose.Schema.Types.ObjectId],
         ref: "Lesson",
       },
-      completed_lessons: {
+      completed_courses: {
+        // Courses completed by the user
         type: [mongoose.Schema.Types.ObjectId],
         ref: "Lesson",
       },
+    },
+    progress: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Progress",
     },
     points: {
       type: Number,
     },
     badges: {
       type: [mongoose.Schema.Types.ObjectId],
-      ref: "Badge"
+      ref: "Badge",
     },
     currentStreak: {
       type: Number,
@@ -60,7 +70,7 @@ const userSchema = new mongoose.Schema(
     },
     achievements: {
       type: [mongoose.Schema.Types.ObjectId],
-      ref: "Achievement"
+      ref: "Achievement",
     },
     refreshToken: {
       type: String,

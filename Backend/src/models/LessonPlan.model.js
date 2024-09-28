@@ -9,6 +9,7 @@ const lessonPlanSchema = new mongoose.Schema(
       title: {
         type: String,
         required: true,
+        index: true,
       },
       subtopics: {
         type: [{}],
@@ -17,6 +18,7 @@ const lessonPlanSchema = new mongoose.Schema(
         title: {
           type: String,
           required: true,
+          index: true,
         },
         content: {
           type: mongoose.Schema.Types.ObjectId,
@@ -26,10 +28,7 @@ const lessonPlanSchema = new mongoose.Schema(
           type: Boolean,
           default: false,
         },
-        start_date: {
-          type: Date,
-        },
-        end_date: {
+        date: {
           type: Date,
         },
         locked: {
@@ -42,10 +41,6 @@ const lessonPlanSchema = new mongoose.Schema(
       },
       end_date: {
         type: Date,
-      },
-      progress: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Progress",
       },
       locked: {
         type: Boolean,
