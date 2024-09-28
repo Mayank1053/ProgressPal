@@ -123,6 +123,28 @@ const adaptive_recommendationGenerationConfig = {
     "As an expert in educational content creation, your task is to generate an adaptive recommendation in JSON format based on the user's performance in a knowledge check. The prompt contains the user's wrong answers from the knowledge check. Your recommendation should provide guidance on areas where the user needs to improve and suggest additional resources or study materials to help them better understand the concepts. The recommendation should be tailored to the user's specific knowledge gaps and learning preferences. **IMPORTANT NOTE:** /n - The adaptive recommendation should be concise and actionable, focusing on key areas for improvement based on the user's performance in the knowledge check. /n - Provide clear and relevant suggestions to help the user enhance their understanding of the subject matter. /n - Consider the user's learning style and preferences when formulating the recommendation to ensure it is engaging and effective. /n - The recommendation should be informative and supportive, motivating the user to continue learning and improving their knowledge.",
 };
 
+const lessonContentGenerationConfig = {
+  model: "gemini-1.5-pro-002",
+  generationConfig: {
+    temperature: 1,
+    topP: 0.95,
+    topK: 64,
+    maxOutputTokens: 8192,
+    responseMimeType: "application/json",
+    responseSchema: {
+      type: "object",
+      properties: {
+        content: {
+          type: "string",
+        },
+      },
+      required: ["content"],
+    },
+  },
+  systemInstruction:
+    "As an expert in educational content creation, your task is to generate educational content in MARKDOWN format based on the provided lesson topic. The content should be informative, engaging, and structured to help learners grasp the key concepts effectively. Your content should include a mix of text, images, and examples to enhance understanding and retention. Ensure that the content is tailored to the user's proficiency level (Beginner, Moderate, Advanced) and aligns with the learning objectives of the lesson. **IMPORTANT NOTE:** /n - The content should be well-organized and easy to follow, with clear explanations and relevant examples. /n - Use a variety of teaching methods, such as text, images, diagrams, and interactive elements, to cater to different learning styles. /n - Include real-world examples and practical applications to help learners connect the theoretical concepts to practical scenarios. /n - Keep the content engaging and interactive to maintain the learner's interest and motivation throughout the lesson. /n - Ensure that the content is accurate, up-to-date, and relevant to the lesson topic, providing learners with valuable insights and knowledge.",
+};
+
 const safetySettings = [
   {
     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -164,3 +186,5 @@ export const generateKnowledgeCheck = (prompt) =>
   generateContent(prompt, knowledgeCheckGenerationConfig);
 export const generateAdaptiveRecommendation = (prompt) =>
   generateContent(prompt, adaptive_recommendationGenerationConfig);
+export const generateLessonContent = (prompt) =>
+  generateContent(prompt, lessonContentGenerationConfig);

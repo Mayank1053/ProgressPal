@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import Progress from "../models/progress.model.js";
 import Course from "../models/course.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
+import { generateContent } from "./course.controller.js";
 
 const markTopicComplete = asyncHandler(async (req, res) => {
   // Get the subtopic(string) from the request
@@ -53,6 +54,9 @@ const markTopicComplete = asyncHandler(async (req, res) => {
 
   // Save the lesson plan
   await LessonPlan.findByIdAndUpdate(lessonPlanId, lessonPlan);
+
+  // Generate the content for the next subtopic by calling the generateContent service function by passing the lessonPlan id and the next days date
+  await generateContent(lessonPlanId, new Date() + 1);
 
   res.json(new ApiResponse(200, lessonPlan, "Subtopic marked as completed"));
 });

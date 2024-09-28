@@ -7,8 +7,8 @@ import LessonPlan from "../models/LessonPlan.model.js";
 import LessonContent from "../models/LessonContent.model.js";
 import {
   generateLessonPlan,
-  generateLessonContent,
 } from "../services/generativeAI.service.js";
+import { generateContent } from "../services/generateContent.js";
 
 const createLessonPlans = asyncHandler(async (req, res) => {
   const { title, level, goal, dailyStudyTime } = req.body;
@@ -70,6 +70,9 @@ const startCourse = asyncHandler(async (req, res) => {
   });
 
   await lessonPlan.save();
+
+  // Generate the content for the first subtopic by calling the generateContent service function by passing the lessonPlan id and the start date(todays date)
+  await generateContent(lessonPlan._id, new Date());
 
   // 5. Send the lesson object in the response
   return res
