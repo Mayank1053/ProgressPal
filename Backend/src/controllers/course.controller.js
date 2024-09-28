@@ -2,9 +2,13 @@ import asyncHandler from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import User from "../models/user.model.js";
-import Lesson from "../models/lesson.model.js";
+import Course from "../models/course.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
-import { generateLessonPlan } from "../services/generativeAI.service.js";
+import LessonContent from "../models/LessonContent.model.js";
+import {
+  generateLessonPlan,
+  generateLessonContent,
+} from "../services/generativeAI.service.js";
 
 const createLessonPlans = asyncHandler(async (req, res) => {
   const { title, level, goal, dailyStudyTime } = req.body;
@@ -34,7 +38,7 @@ const startCourse = asyncHandler(async (req, res) => {
   });
 
   // 3. Create a lesson object with the data
-  const lesson = await Lesson.create({
+  const lesson = await Course.create({
     title: FinalPlan.Title,
     user: req.user._id,
     level,
@@ -49,6 +53,23 @@ const startCourse = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   user.lessons.current_lessons.push(lesson._id);
   await user.save();
+
+  // Add a copy of lessonPlan in lessonContent model in text form for content generation
+  await LessonContent.create({
+    lessonPlan: JSON.stringify(FinalPlan),
+  });
+  
+  // 5. Add the dates to all the subtopics for a daily reminder
+  // Based on the start date add dates to all the subtopics for a daily reminder
+  const topics = lessonPlan.topics;
+  topics.forEach((topic) => {
+    topic.subtopics.forEach((subtopic) => {
+      subtopic.date = startDate;
+      startDate.setDate(startDate.getDate() + 1);
+    });
+  });
+
+  await lessonPlan.save();
 
   // 5. Send the lesson object in the response
   return res
@@ -84,22 +105,49 @@ const getLessons = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, lessons, "Lessons fetched successfully"));
 });
 
-const getLesson = asyncHandler(async (req, res) => {
-  // Get the lesson id from the request
-  const { lessonId } = req.params;
+const getLessonPlan = asyncHandler(async (req, res) => {
+  // Get the lesson plan id from the request
+  const lessonPlanId = req.params.id;
 
-  // Get the lesson from the database
-  const lesson = await Lesson.findById(lessonId);
+  // Get the lesson plan from the database
+  const lessonPlan = await LessonPlan.findById(lessonPlanId);
 
   // Error handling
-  if (!lesson) {
-    throw new ApiError(404, "Lesson not found");
+  if (!lessonPlan) {
+    throw new ApiError(404, "Lesson plan not found");
   }
 
-  // Send the lesson in the response
+  // Send the lesson plan in the response
   return res
     .status(200)
-    .json(new ApiResponse(200, lesson, "Lesson fetched successfully"));
+    .json(new ApiResponse(200, lessonPlan, "Lesson plan fetched successfully"));
 });
 
-export { createLessonPlans, startCourse, getLessons, getLesson };
+const getLessonContent = asyncHandler(async (req, res) => {
+  // Get the lesson content id from the request
+  const lessonContentId = req.params.id;
+
+  // Get the lesson content from the database
+  const lessonContent = await LessonContent.findById(lessonContentId);
+
+  // Error handling
+  if (!lessonContent) {
+    throw new ApiError(404, "Lesson content not found");
+  }
+
+  // Send the lesson content in the response
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, lessonContent, "Lesson content fetched successfully")
+    );
+});
+
+export {
+  createLessonPlans,
+  startCourse,
+  getLessons,
+  getLessonPlan,
+  getLessonContent,
+  generateContent,
+};
