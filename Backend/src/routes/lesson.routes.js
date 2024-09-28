@@ -3,8 +3,10 @@ import {
   createLessonPlans,
   startCourse,
   getLessons,
-  getLesson,
-} from "../controllers/lesson.controller.js";
+  getLessonPlan,
+  getLessonContent,
+  generateContent,
+} from "../controllers/course.controller.js";
 import { verifyJwtToken } from "../middlewares/auth.js";
 
 const router = Router();
@@ -13,6 +15,6 @@ router.use(verifyJwtToken);
 
 router.route("/").get(getLessons).post(createLessonPlans);
 router.route("/start").post(startCourse);
-router.route("/:lessonId").get(getLesson);
+router.route("/:lessonId").get(getLessonPlan);
 
 export default router;
