@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 
 const lessonPlanSchema = new mongoose.Schema(
   {
+    planText: {
+      type: String,
+    },
     topics: {
       type: [{}],
       required: true,
@@ -20,9 +23,16 @@ const lessonPlanSchema = new mongoose.Schema(
           required: true,
           index: true,
         },
-        content: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "LessonContent",
+        lessonContent: {
+          contents: {
+            type: [String],
+          },
+          objectives: {
+            type: [String],
+          },
+          content: {
+            type: String,
+          },
         },
         completed: {
           type: Boolean,
