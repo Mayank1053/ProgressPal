@@ -27,17 +27,13 @@ const createLessonPlans = asyncHandler(async (req, res) => {
 });
 
 const startCourse = asyncHandler(async (req, res) => {
-  // Get the Final edited plan and start data from req.body, save the plan in database then create a lesson and also add lesson to user model
-  // 1. Get Final & edited Plan and start data from body
   const { FinalPlan, startDate, level, goal, dailyStudyTime } = req.body;
 
-  // 2. Create a lesson object with the data
   const lessonPlan = await LessonPlan.create({
     topics: FinalPlan.Plan,
     subtopics: [FinalPlan.Plan.subtopics],
   });
 
-  // 3. Create a lesson object with the data
   const lesson = await Course.create({
     title: FinalPlan.Title,
     user: req.user._id,
@@ -46,35 +42,30 @@ const startCourse = asyncHandler(async (req, res) => {
     daily_study_time: dailyStudyTime,
     lessonPlan: lessonPlan._id,
     start_date: startDate,
-    progress: 0,
   });
 
-  // 4. Add the lesson to the user model
   const user = await User.findById(req.user._id);
-  user.lessons.current_lessons.push(lesson._id);
+  user.Courses.current_courses.push(lesson._id);
   await user.save();
 
-  // Add a copy of lessonPlan in lessonContent model in text form for content generation
-  await LessonContent.create({
-    lessonPlan: JSON.stringify(FinalPlan),
-  });
-  
-  // 5. Add the dates to all the subtopics for a daily reminder
-  // Based on the start date add dates to all the subtopics for a daily reminder
-  const topics = lessonPlan.topics;
-  topics.forEach((topic) => {
+  lessonPlan.planText = JSON.stringify(FinalPlan);
+
+  // Add dates to all the subtopics for a daily reminder
+  let currentDate = new Date(startDate);
+  lessonPlan.topics.forEach((topic) => {
     topic.subtopics.forEach((subtopic) => {
-      subtopic.date = startDate;
-      startDate.setDate(startDate.getDate() + 1);
+      subtopic.date = new Date(currentDate);
+      currentDate.setDate(currentDate.getDate() + 1);
     });
   });
 
+  // Mark the subtopics as modified
+  lessonPlan.markModified("topics");
+
   await lessonPlan.save();
 
-  // Generate the content for the first subtopic by calling the generateContent service function by passing the lessonPlan id and the start date(todays date)
   await generateContent(lessonPlan._id, new Date());
 
-  // 5. Send the lesson object in the response
   return res
     .status(200)
     .json(new ApiResponse(200, lesson, "Course started successfully"));
