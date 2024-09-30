@@ -1,12 +1,19 @@
 import ApiError from "../utils/ApiError.js";
-import Course from "../models/course.model";
+import Course from "../models/course.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
-import LessonContent from "../models/LessonContent.model";
 import { generateLessonContent } from "../services/generativeAI.service.js";
 
 const generateContent = async (lessonPlanId, date) => {
   // Get the title, level, goal, and daily study time from the course object based on the lesson plan id
-  const course = await Course.findOne({ lessonPlan: lessonPlanId });
+  console.log("lessonPlanId: ", lessonPlanId); // lessonPlanId:  new ObjectId('66f9962bd60e6f8e395a816f')
+  console.log("date: ", date); // date:  2024-09-29T18:02:19.453Z
+  new Date(date.setDate(date.getDate() + 1));
+  
+
+  // Find the course based on the lesson plan id
+  const course = await Course.findOne({
+    lessonPlan: lessonPlanId,
+  });
 
   // Error handling
   if (!course) {
@@ -28,12 +35,19 @@ const generateContent = async (lessonPlanId, date) => {
   const subtopic = lessonPlan.topics
     .map((topic) => topic.subtopics)
     .flat()
-    .find((subtopic) => subtopic.date === date);
+    .find(
+      (subtopic) =>
+        new Date(subtopic.date).toDateString() === date.toDateString()
+    );
+
+  console.log("subtopic: ", subtopic);
 
   // Error handling
   if (!subtopic) {
     throw new ApiError(404, "Subtopic not found");
   }
+
+  // Get lessonPlan from lessonContent
 
   // Get the topics title and subtopics title from the lesson plan object and store them in a lesson_Plan(systemPrompt) object with proper structure for the generative AI service
   const systemPrompt = {
@@ -41,38 +55,34 @@ const generateContent = async (lessonPlanId, date) => {
     level,
     goal,
     daily_study_time,
-    Plan: lessonPlan.topics.map((topic) => ({
-      topic: topic.title,
-      subtopics: topic.subtopics.map((subtopic) => ({
-        title: subtopic.title,
-      })),
-    })),
+    Plan: lessonPlan.planText,
   };
 
   // Stringify the system prompt
   const stringifySystemPrompt = JSON.stringify(systemPrompt);
 
-  // Create a new lesson content object
-  const newLessonContent = new LessonContent({
-    lessonPlan: stringifySystemPrompt,
-  });
-
-  console.log(systemPrompt);
+  console.log("systemPrompt: ", systemPrompt);
 
   // Generate the prompt for the generative AI service based on the subtopic
-  const prompt = `Generate content for the subtopic: ${subtopic} based on the lessonPlan`;
+  const prompt = `Generate content for the subtopic: ${subtopic.title} based on the lessonPlan`;
 
   // Generate the lesson content based on the lesson plan and course data
-  const lessonContent = await generateLessonContent(systemPrompt, prompt);
+  const lessonContent = await generateLessonContent(
+    stringifySystemPrompt,
+    prompt
+  );
 
-  // Update the lesson content object with the generated content
-  newLessonContent.content = lessonContent;
+  console.log("lessonContent: ", lessonContent);
 
-  // Save the updated lesson content object
-  await newLessonContent.save();
+  // Update the subtopic content object with the generated content
+  subtopic.lessonContent = lessonContent;
 
-  return newLessonContent;
+  lessonPlan.markModified("topics");
+
+  // Save the updated lesson plan
+  await lessonPlan.save();
+
+  return lessonContent;
 };
 
 export { generateContent };
-
