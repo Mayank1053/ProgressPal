@@ -5,7 +5,6 @@ import {
   getLessons,
   getLessonPlan,
   getLessonContent,
-  generateContent,
 } from "../controllers/course.controller.js";
 import { verifyJwtToken } from "../middlewares/auth.js";
 
@@ -16,5 +15,6 @@ router.use(verifyJwtToken);
 router.route("/").get(getLessons).post(createLessonPlans);
 router.route("/start").post(startCourse);
 router.route("/:lessonId").get(getLessonPlan);
+router.route("/:lessonPlanId/:subtopic").get(getLessonContent);
 
 export default router;

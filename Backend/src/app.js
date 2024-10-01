@@ -16,7 +16,7 @@ app.use(cookieParser());
 
 // Routes import
 import userRoutes from "./routes/user.routes.js";
-import lessonRoutes from "./routes/lesson.routes.js";
+import lessonRoutes from "./routes/course.routes.js";
 import KnowledgeCheck from "./routes/knowledgeCheck.routes.js";
 import progress from "./routes/progress.routes.js";
 

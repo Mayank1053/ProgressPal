@@ -3,11 +3,9 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import User from "../models/user.model.js";
 import Course from "../models/course.model.js";
+import Progress from "../models/progress.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
-import LessonContent from "../models/LessonContent.model.js";
-import {
-  generateLessonPlan,
-} from "../services/generativeAI.service.js";
+import { generateLessonPlan } from "../services/generativeAI.service.js";
 import { generateContent } from "../services/generateContent.js";
 
 const createLessonPlans = asyncHandler(async (req, res) => {
@@ -64,6 +62,13 @@ const startCourse = asyncHandler(async (req, res) => {
 
   await lessonPlan.save();
 
+  // Add userId & courseId to progress model
+  await Progress.create({
+    user: req.user._id,
+    course: lesson._id,
+  });
+
+  // Generate the content for the first subtopic
   await generateContent(lessonPlan._id, new Date());
 
   return res
@@ -118,22 +123,28 @@ const getLessonPlan = asyncHandler(async (req, res) => {
 });
 
 const getLessonContent = asyncHandler(async (req, res) => {
-  // Get the lesson content id from the request
-  const lessonContentId = req.params.id;
-
-  // Get the lesson content from the database
-  const lessonContent = await LessonContent.findById(lessonContentId);
-
+  // Get the lesson plan id and Subtopic from the request
+  const { lessonPlanId, subtopic } = req.params;
+  
+  // Get the lesson plan from the database
+  const lessonPlan = await LessonPlan.findById(lessonPlanId);
+  
   // Error handling
-  if (!lessonContent) {
-    throw new ApiError(404, "Lesson content not found");
+  if (!lessonPlan) {
+    throw new ApiError(404, "Lesson plan not found");
   }
 
-  // Send the lesson content in the response
+  // Get the contents, objectives, and content of the subtopic
+  const { contents, objectives, content } = lessonPlan.topics
+    .map((topic) => topic.subtopics)
+    .flat()
+    .find((sub) => sub.title === subtopic).lessonContent;
+
+  // Send the content in the response
   return res
     .status(200)
     .json(
-      new ApiResponse(200, lessonContent, "Lesson content fetched successfully")
+      new ApiResponse(200, { contents, objectives, content }, "Content fetched successfully")
     );
 });
 
@@ -143,5 +154,4 @@ export {
   getLessons,
   getLessonPlan,
   getLessonContent,
-  generateContent,
 };
