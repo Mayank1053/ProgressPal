@@ -7,11 +7,11 @@ const progressSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
     daily_progress: {
-      course: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Course",
-      },
       date: {
         type: Date,
       },
@@ -20,16 +20,9 @@ const progressSchema = new mongoose.Schema(
         ref: "KnowledgeCheck",
       },
     },
-    overall_progress: {  // Total progress of the current courses => % of completed subtopics to total subtopics
-      type: [Number] // Will have the progress of each course in the same order as the user's current_courses array
-    },
-    currentStreak: {
-      type: Number,
-      default: 0,
-    },
-    longestStreak: {
-      type: Number,
-      default: 0,
+    overall_progress: {
+      // Total progress of the current course => % of completed subtopics to total subtopics
+      type: Number, // 0-100 => 0% - 100%
     },
   },
   {
