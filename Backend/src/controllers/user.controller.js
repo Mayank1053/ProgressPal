@@ -24,18 +24,11 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   // 1. Get user data from frontend(req.body)
-  const { fullName, username, email, password, bio } = req.body;
+  const { fullName, email, password } = req.body;
 
   // 2. Validate user data
-  if (!fullName || !username || !email || !password) {
+  if (!fullName || !email || !password) {
     throw new ApiError(400, "Please fill in all the required fields");
-  }
-  // validate username and make it lowercase
-  if (!/^[a-zA-Z0-9_.]+$/.test(username)) {
-    throw new ApiError(
-      400,
-      "Username can only contain letters, numbers, and underscores"
-    );
   }
 
   // validate email
@@ -44,7 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // 3. Check if user already exists
-  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+  const existingUser = await User.findOne({ email });
   if (existingUser) {
     if (avatarLocalPath) FileSystem.unlinkSync(avatarLocalPath);
     throw new ApiError(409, "User already exists");
@@ -60,7 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const avatar = await uploadMediaOnCloudinary(
     avatarLocalPath,
     "image",
-    `${username}-avatar`
+    `${fullName}-avatar`
   );
   const avatarUrl = avatar.url;
 
@@ -71,11 +64,9 @@ const registerUser = asyncHandler(async (req, res) => {
   // 5. Create and save the user object with the data
   const newUser = await User.create({
     fullName,
-    username,
     email,
     password,
     avatar: avatarUrl,
-    bio,
   });
   // Check if the user is created
   // 6. Remove password and refresh token from responce
@@ -94,9 +85,9 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   // 1. Get user data from frontend(req.body)
-  const { email, username, password } = req.body;
-  if (!(email || username)) {
-    throw new ApiError(400, "Please provide an email or username");
+  const { email, password } = req.body;
+  if (!(email)) {
+    throw new ApiError(400, "Please provide an email");
   }
   // 2. Validate user data
   if (!password) {
@@ -104,7 +95,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   // 3. Check if user exists in the database with the provided email or username. if does not exists then redirect them to /register.
-  const user = await User.findOne({ $or: [{ email }, { username }] });
+  const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(404, "User not found");
     // Redirect to /register
@@ -252,8 +243,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
 const updateUserDetails = asyncHandler(async (req, res) => {
   // 1. Get the updated user details from the request
-  const { fullName, username, email, bio } = req.body;
-  if (!fullName || !username || !email) {
+  const { fullName, email, dailyReminderTime } = req.body;
+  if (!fullName || !dailyReminderTime || !email) {
     throw new ApiError(400, "Please fill in all the required fields");
   }
 
@@ -262,9 +253,8 @@ const updateUserDetails = asyncHandler(async (req, res) => {
     req.user?._id,
     {
       fullName,
-      username,
       email,
-      bio,
+      dailyReminderTime,
     },
     { new: true }
   ).select("-password -refreshToken");

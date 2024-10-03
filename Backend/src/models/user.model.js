@@ -35,9 +35,6 @@ const userSchema = new mongoose.Schema(
         // Time in HH:MM format
         type: String,
       },
-      language: {
-        type: String,
-      },
     },
     Courses: {
       current_courses: {
