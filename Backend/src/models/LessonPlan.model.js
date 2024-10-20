@@ -69,6 +69,7 @@ const lessonPlanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const LessonPlan = mongoose.model("LessonPlan", lessonPlanSchema);
+const LessonPlan =
+  mongoose.models.LessonPlan || mongoose.model("LessonPlan", lessonPlanSchema);
 
 export default LessonPlan;

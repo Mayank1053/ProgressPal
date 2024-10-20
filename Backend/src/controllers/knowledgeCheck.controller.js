@@ -2,7 +2,7 @@ import asyncHandler from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import KnowledgeCheck from "../models/knowledgeCheck.model.js";
-import LessonPlan from "../models/LessonPlan.model.js";
+import LessonPlan from "../models/lessonPlan.model.js";
 import Progress from "../models/progress.model.js";
 import {
   generateKnowledgeCheck,
