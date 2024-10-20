@@ -7,12 +7,15 @@ import {
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+
+
+
 const lessonPlanGenerationConfig = {
-  model: "gemini-1.5-pro-exp-0827",
+  model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
-    topK: 64,
+    topK: 40,
     maxOutputTokens: 8192,
     responseMimeType: "application/json",
     responseSchema: {
@@ -54,11 +57,11 @@ const lessonPlanGenerationConfig = {
 };
 
 const knowledgeCheckGenerationConfig = {
-  model: "gemini-1.5-flash-exp-0827",
+  model: "gemini-1.5-flash-002",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
-    topK: 64,
+    topK: 40,
     maxOutputTokens: 8192,
     responseMimeType: "application/json",
     responseSchema: {
@@ -102,11 +105,11 @@ const knowledgeCheckGenerationConfig = {
 };
 
 const adaptive_recommendationGenerationConfig = {
-  model: "gemini-1.5-flash-exp-0827",
+  model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
-    topK: 64,
+    topK: 40,
     maxOutputTokens: 8192,
     responseMimeType: "application/json",
     responseSchema: {
@@ -124,11 +127,11 @@ const adaptive_recommendationGenerationConfig = {
 };
 
 const lessonContentGenerationConfig = (stringifySystemPrompt) => ({
-  model: "gemini-1.5-pro-exp-0827",
+  model: "gemini-1.5-pro",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
-    topK: 64,
+    topK: 40,
     maxOutputTokens: 8192,
     responseMimeType: "application/json",
     responseSchema: {
@@ -150,7 +153,7 @@ const lessonContentGenerationConfig = (stringifySystemPrompt) => ({
           type: "string",
         },
       },
-      required: ["contents", "objectives", "content"],
+      required: ["contents", "objectives"],
     },
   },
   systemInstruction: `${stringifySystemPrompt},
@@ -192,6 +195,9 @@ const lessonContentGenerationConfig = (stringifySystemPrompt) => ({
     "content": "string"  // The full MARKDOWN content for the subtopic lesson
   }"`,
 });
+
+
+
 
 const safetySettings = [
   {
