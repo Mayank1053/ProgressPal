@@ -9,13 +9,13 @@ import { generateLessonPlan } from "../services/generativeAI.service.js";
 import { generateContent } from "../services/generateContent.js";
 
 const createLessonPlans = asyncHandler(async (req, res) => {
-  const { title, level, goal, dailyStudyTime } = req.body;
+  const { topic, level, goal, dailyStudyTime } = req.body;
 
-  if (!title || !level || !goal || !dailyStudyTime) {
+  if (!topic || !level || !goal || !dailyStudyTime) {
     throw new ApiError(400, "Please fill in all the required fields");
   }
 
-  const prompt = `I want to learn: ${title} to the: ${level} level, my goal is to: ${goal}, and I can spend daily: ${dailyStudyTime} on learning it.`;
+  const prompt = `I want to learn: ${topic} to the: ${level} level, my goal is to: ${goal}, and I can spend daily: ${dailyStudyTime} on learning it.`;
 
   const GenAIPlan = await generateLessonPlan(prompt);
 
@@ -43,7 +43,14 @@ const startCourse = asyncHandler(async (req, res) => {
   });
 
   const user = await User.findById(req.user._id);
-  user.Courses.current_courses.push(lesson._id);
+
+  // Update the user's courses with the new course
+  user.Courses.current_courses.push({
+    courseId: lesson._id,
+    title: lesson.title,
+    progress: 0,
+  });
+
   await user.save();
 
   lessonPlan.planText = JSON.stringify(FinalPlan);
@@ -76,40 +83,20 @@ const startCourse = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, lesson, "Course started successfully"));
 });
 
-const getLessons = asyncHandler(async (req, res) => {
-  // Get all the lessons of the user
-  const user = await User.findById(req.user._id).populate("lessons");
+const getLessonPlan = asyncHandler(async (req, res) => {
+  // Get the Course id from the request
+  const { courseId } = req.params;
 
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  const lessons = user.lessons;
+  // Check if the course exists in the database
+  const course = await Course.findById(courseId);
 
   // Error handling
-  if (!lessons) {
-    throw new ApiError(404, "No lessons found for the user");
+  if (!course) {
+    throw new ApiError(404, "Course not found");
   }
 
-  // Empty lessons
-  if (lessons.length === 0) {
-    return res
-      .status(200)
-      .json(new ApiResponse(200, [], "No lessons found for the user"));
-  }
-
-  // Send the lessons in the response
-  return res
-    .status(200)
-    .json(new ApiResponse(200, lessons, "Lessons fetched successfully"));
-});
-
-const getLessonPlan = asyncHandler(async (req, res) => {
-  // Get the lesson plan id from the request
-  const lessonPlanId = req.params.id;
-
-  // Get the lesson plan from the database
-  const lessonPlan = await LessonPlan.findById(lessonPlanId);
+  // Get the lesson plan of the course
+  const lessonPlan = await LessonPlan.findById(course.lessonPlan);
 
   // Error handling
   if (!lessonPlan) {
@@ -117,18 +104,26 @@ const getLessonPlan = asyncHandler(async (req, res) => {
   }
 
   // Send the lesson plan in the response
-  return res
-    .status(200)
-    .json(new ApiResponse(200, lessonPlan, "Lesson plan fetched successfully"));
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        title: course.title,
+        progress: course.progress,
+        lessonPlan,
+      },
+      "Lesson plan fetched successfully"
+    )
+  );
 });
 
 const getLessonContent = asyncHandler(async (req, res) => {
   // Get the lesson plan id and Subtopic from the request
   const { lessonPlanId, subtopic } = req.params;
-  
+
   // Get the lesson plan from the database
   const lessonPlan = await LessonPlan.findById(lessonPlanId);
-  
+
   // Error handling
   if (!lessonPlan) {
     throw new ApiError(404, "Lesson plan not found");
@@ -144,14 +139,17 @@ const getLessonContent = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, { contents, objectives, content }, "Content fetched successfully")
+      new ApiResponse(
+        200,
+        { contents, objectives, content },
+        "Content fetched successfully"
+      )
     );
 });
 
 export {
   createLessonPlans,
   startCourse,
-  getLessons,
   getLessonPlan,
   getLessonContent,
 };
