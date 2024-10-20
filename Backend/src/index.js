@@ -1,4 +1,4 @@
-import connectDB from "./DB/dbConnect.js";
+import connectDB from "./config/dbConnect.js";
 import app from "./app.js";
 
 connectDB().then(() => {
