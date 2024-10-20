@@ -11,12 +11,12 @@
    - **Features**:
      - Welcoming screen with an image and motivational text: "Learn something new every day. Start with a topic or concept you're interested in, and we'll help you master it."
      - Input field for selecting a topic and entering available study time per day.
-     - Three AI-generated lesson plans based on the user's knowledge level (beginner, moderate, or advanced).
+     - A level slider to input the user's knowledge level on the chosen topic. (Beginner, Intermediate, Advanced)
      - Customization options for users to modify or remove topics within the selected lesson plan.
      - Shortcut to pending lessons for easy access.
      - "Explore" section to browse public topics or concepts shared by other users.
-     - **New**: Introduce gamification elements like daily rewards, badges, and leaderboards to increase user engagement.
-     - **New**: Integration with social media platforms to allow users to share their progress or achievements.
+     <!-- - **New**: Introduce gamification elements like daily rewards, badges, and leaderboards to increase user engagement.
+     - **New**: Integration with social media platforms to allow users to share their progress or achievements. -->
 
 3. **Lessons**
    - **Features**:
@@ -25,21 +25,21 @@
      - Link to the "Knowledge Check" for daily quizzes.
      - Locked content for upcoming days to maintain focus on daily goals.
      - Review lesson at the end of the plan, covering 'Topics to Review.'
-     - **New**: Offline mode for downloading lessons and resources, allowing users to study without an internet connection.
-     - **Extra**: Create your own course and lessons with help of AI.
+     <!-- - **New**: Offline mode for downloading lessons and resources, allowing users to study without an internet connection.
+     - **Extra**: Create your own course and lessons with help of AI. -->
 
 4. **Knowledge Check**
    - **Features**:
      - Daily tests with 10 multiple-choice questions (MCQs) related to the day's topic.
      - Log of test results for review and progress tracking.
-     - **New**: Adaptive learning paths that adjust the difficulty of content based on user performance in tests.
+     <!-- - **New**: Adaptive learning paths that adjust the difficulty of content based on user performance in tests. -->
 
 5. **Progress**
    - **Features**:
      - Visualization of overall learning progress through a progress bar and a graph of daily test results.
      - "Topics to Review" section for revisiting areas where mistakes were made during tests.
      - Achievement section showcasing user accomplishments such as daily streaks, correct answers, and milestone badges.
-     - **Extra**: Enhanced analytics providing detailed insights, such as time spent on each lesson, accuracy trends, and personalized study recommendations.
+     <!-- - **Extra**: Enhanced analytics providing detailed insights, such as time spent on each lesson, accuracy trends, and personalized study recommendations. -->
 
 6. **Profile**
    - **Features**:
@@ -47,20 +47,13 @@
      - "Learned Before" section for reviewing past learning achievements.
      - Settings for daily reminder emails and their timing.
      - Option to change the password or delete the account.
-     - **Extra**: Integration with other learning platforms (e.g., Mdm articles, google scholar, etc) for accessing additional resources or earning certifications.
-     - **Extra**: Multilingual support to accommodate non-English-speaking users.(not in priority)
+     <!-- - **Extra**: Integration with other learning platforms (e.g., Mdm articles, google scholar, etc) for accessing additional resources or earning certifications.
+     - **Extra**: Multilingual support to accommodate non-English-speaking users.(not in priority) -->
 
-7. **Community**
+<!-- 7. **Community**
    - **Features**:
      - **New**: Discussion forum or Q&A section where users can engage with each other, share resources, and ask questions.
-     - **Extra**: A feedback system that allows users to suggest new features, report issues, and provide general feedback directly through the platform.
-
-### Key Benefits of ProgressPal
-
-- **Personalized Learning**: Tailored lesson plans that adapt to the user’s knowledge level and progress, ensuring an efficient learning process.
-- **Engagement**: Gamification, social sharing, and community features keep users motivated and connected.
-- **Accessibility**: Offline mode and multilingual support make the platform accessible to a wider audience.
-- **Integration**: Connection with other learning platforms enhances resource availability and provides users with broader learning opportunities.
+     - **Extra**: A feedback system that allows users to suggest new features, report issues, and provide general feedback directly through the platform. -->
 
 
-// Extra Features to be added later.
+// Extra Features to be added later after the basic features are implemented.
