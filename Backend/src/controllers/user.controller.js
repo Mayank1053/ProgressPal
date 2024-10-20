@@ -2,10 +2,14 @@ import asyncHandler from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import User from "../models/user.model.js";
-import { uploadMediaOnCloudinary, deleteMedia } from "../utils/cloudinary.js";
+import VerificationCodeModel from "../models/verificationCode.model.js";
+import { sendMail } from "../utils/sendMail.js";
+import {
+  getVerifyEmailTemplate,
+  getPasswordResetTemplate,
+} from "../utils/emailTemplate.js";
 import jwt from "jsonwebtoken";
 import FileSystem from "fs";
-
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -18,6 +22,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 
     return { accessToken, refreshToken };
   } catch (error) {
+    console.log("GenerateTokensError", error.message);
     throw new ApiError(500, "Failed to generate tokens");
   }
 };
@@ -43,38 +48,39 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists");
   }
 
-  // 4. Check for avatar and cover images and upload them to cloudinary
-  const avatarLocalPath = req.files?.avatar?.[0]?.path;
-
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Please provide an avatar image");
-  }
-  // Upload images to cloudinary
-  const avatar = await uploadMediaOnCloudinary(
-    avatarLocalPath,
-    "image",
-    `${fullName}-avatar`
-  );
-  const avatarUrl = avatar.url;
-
-  if (!avatarUrl) {
-    throw new ApiError(500, "Failed to upload avatar image");
-  }
-
   // 5. Create and save the user object with the data
   const newUser = await User.create({
     fullName,
     email,
     password,
-    avatar: avatarUrl,
+    verified: false,
   });
   // Check if the user is created
-  // 6. Remove password and refresh token from responce
+  // 6. Remove password and refresh token from response
   const createdUser = await User.findById(newUser._id).select(
     "-password -refreshToken"
   );
   if (!createdUser) {
     throw new ApiError(404, "User not Created");
+  }
+  // Generate a verification token
+  const userId = createdUser._id;
+  const verificationCode = await VerificationCodeModel.create({
+    userId,
+    type: "email_verification",
+    // Set this to expire in 24 hours
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  });
+
+  const url = `${process.env.CLIENT_URL}/user/email/verify/${verificationCode._id}`;
+  // Send a verification email using resend API
+  try {
+    await sendMail({
+      to: createdUser.email,
+      ...getVerifyEmailTemplate(url),
+    });
+  } catch (error) {
+    ApiError(500, "Failed to send verification email");
   }
 
   // 7. Send the modified user object in the response
@@ -86,7 +92,7 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   // 1. Get user data from frontend(req.body)
   const { email, password } = req.body;
-  if (!(email)) {
+  if (!email) {
     throw new ApiError(400, "Please provide an email");
   }
   // 2. Validate user data
@@ -135,6 +141,34 @@ const loginUser = asyncHandler(async (req, res) => {
         "User logged in successfully"
       )
     );
+});
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { code } = req.params;
+
+  const VerifyCode = await VerificationCodeModel.findOne({
+    _id: code,
+    type: "email_verification",
+    expiresAt: { $gt: new Date() },
+  });
+  if (!VerifyCode) {
+    throw new ApiError(400, "Invalid or expired verification code");
+  }
+
+  // Find the user and update the verified field
+  const updatedUser = await User.findByIdAndUpdate(
+    VerifyCode.userId,
+    { verified: true },
+    { new: true }
+  );
+  if (!updatedUser) {
+    throw new ApiError(404, "Failed to verify email");
+  }
+
+  // Delete the verification code
+  await VerifyCode.deleteOne();
+
+  return res.status(201).json({ message: "Email verified" });
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
@@ -236,10 +270,90 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Password changed successfully"));
 });
 
-// const forgotPassword = asyncHandler(async (req, res) => {
-//   // Steps to reset the password
-//   // 1. Get the email from the request
-// });
+const forgotPassword = asyncHandler(async (req, res) => {
+  // validate email
+  const email = req.body;
+  // send email with reset link
+  // Catch any errors that occur during the process and return an empty object
+  // This is to prevent leaking information about the existence of an email in the system
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    // check email rate limit
+    // Here we'll count of the documents with this email of type password reset, we are only allowing 2 requests per 5 minutes
+    const resetRequests = await VerificationCodeModel.countDocuments({
+      userId: req.user._id,
+      type: "password_reset",
+      createdAt: {
+        $gt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes
+      },
+    });
+    appAssert(resetRequests < 2, "Rate limit exceeded", TOO_MANY_REQUESTS);
+
+    // generate a reset code
+    const resetCode = await VerificationCodeModel.create({
+      userId: req.user._id,
+      type: "password_reset",
+      expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
+    });
+
+    // send email with reset link
+    const url = `${process.env.CLIENT_URL}/user/password/reset?code=${
+      resetCode._id
+    }&exp=${resetCode.expiresAt.getTime()}`;
+
+    const { data, error } = await sendMail({
+      to: user.email,
+      ...getPasswordResetTemplate(url),
+    });
+
+    if (!data?.id) {
+      throw new ApiError(500, "Failed to send password reset email", error);
+    }
+
+    // return { url, email: data.id };
+    return res.status(OK).json({ message: "Password reset email sent" });
+  } catch (error) {
+    console.log("SendPasswordResetEmailError", error.message);
+    return res.status(error.statusCode || 500).json({ message: error.message });
+  }
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  // validate reset token and new password
+  const { password, verificationCode } = req.body;
+
+  // reset password
+  const resetCode = await VerificationCodeModel.findOne({
+    _id: verificationCode,
+    type: "password_reset",
+    expiresAt: { $gt: new Date() },
+  });
+  if (!resetCode) {
+    throw new ApiError(400, "Invalid or expired verification code");
+  }
+
+  // Find the user and update the password
+  const updatedUser = await User.findByIdAndUpdate(
+    resetCode.userId,
+    { password: await hashValue(password) },
+    { new: true }
+  );
+  if (!updatedUser) {
+    throw new ApiError(404, "Failed to reset password");
+  }
+
+  // Delete the verification code
+  await resetCode.deleteOne();
+
+  return clearAuthCookies(res)
+    .status(OK)
+    .json({ message: "Password reset successful" });
+});
 
 const updateUserDetails = asyncHandler(async (req, res) => {
   // 1. Get the updated user details from the request
@@ -269,53 +383,10 @@ const updateUserDetails = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "User details updated successfully"));
 });
 
-const updateAvatar = asyncHandler(async (req, res) => {
-  // 1. Get the avatar image from the request
-  const avatarLocalPath = req.file?.path;
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Please provide an avatar image");
-  }
-  // 2. Delete the old avatar image from cloudinary
-  const publicId = req.user?.username + "-avatar";
-  console.log(publicId);
-
-  if (publicId) {
-    await deleteMedia(publicId);
-  }
-
-  // 3. Upload the avatar image to cloudinary
-  const avatar = await uploadMediaOnCloudinary(
-    avatarLocalPath,
-    "image",
-    publicId
-  );
-  const avatarUrl = avatar.url;
-
-  if (!avatarUrl) {
-    throw new ApiError(500, "Failed to upload avatar image");
-  }
-
-  // 4. Update the user object with the new avatar image
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      avatar: avatarUrl,
-    },
-    { new: true }
-  ).select("-password -refreshToken");
-
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  // 5. Send the updated user object in the response
-  return res
-    .status(200)
-    .json(new ApiResponse(200, user, "Avatar updated successfully"));
-});
-
 const getCurrentUser = asyncHandler(async (req, res) => {
   const user = req.user;
+
+  console.log(user);
 
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -332,6 +403,8 @@ export {
   refreshAccessToken,
   changeCurrentPassword,
   updateUserDetails,
-  updateAvatar,
   getCurrentUser,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
 };

@@ -26,10 +26,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
     },
-    avatar: {
-      type: String, // Cloudinary URL
-      required: true,
-    },
+    verified: { type: Boolean, required: true, default: false },
     preferences: {
       dailyReminderTime: {
         // Time in HH:MM format
@@ -37,37 +34,21 @@ const userSchema = new mongoose.Schema(
       },
     },
     Courses: {
-      current_courses: {
-        // Courses currently being taken by the user
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Lesson",
-      },
-      completed_courses: {
-        // Courses completed by the user
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Lesson",
-      },
-    },
-    progress: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Progress",
-    },
-    points: {
-      type: Number,
-    },
-    badges: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Badge",
-    },
-    currentStreak: {
-      type: Number,
-    },
-    longestStreak: {
-      type: Number,
-    },
-    achievements: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Achievement",
+      current_courses: [
+        {
+          // Courses currently being taken by the user
+          courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
+          title: { type: String },
+          progress: { type: Number },
+        },
+      ],
+      completed_courses: [
+        {
+          // Courses completed by the user
+          courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
+          title: { type: String },
+        },
+      ],
     },
     refreshToken: {
       type: String,
