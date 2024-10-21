@@ -19,7 +19,8 @@ import ResetPassword from "./pages/ResetPassword";
 import Lessons from "./pages/Lessons.jsx";
 import Progress from "./pages/Progress";
 import Tests from "./pages/Tests";
-import { CoursesPage } from "./components/Courses";
+import { CoursesPage } from "./pages/Courses";
+import { LessonContent } from "./components/lesson-content-page";
 
 function App() {
   const navigate = useNavigate();
@@ -34,6 +35,10 @@ function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="courses" element={<CoursesPage />} />
         <Route path="courses/:courseId" element={<Lessons />} />
+        <Route
+          path="courses/content/:subtopicTitle"
+          element={<LessonContent />}
+        />
         <Route path="progress" element={<Progress />} />
         <Route path="tests" element={<Tests />} />
       </Route>

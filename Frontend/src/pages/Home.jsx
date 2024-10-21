@@ -31,16 +31,16 @@ const HomePage = () => {
     setIsGeneratingPlan(true);
   };
 
-  const { mutate: startCourseMutation, isLoading: isStartingCourse } =
+  const { mutate: startCourseMutation, isPending: isStartingCourse } =
     useMutation({
       mutationFn: startCourse,
       onSuccess: (data) => {
         console.log("Course started:", data);
-        navigate("/lessons");
+        navigate("/courses");
       },
     });
 
-  const { mutate: createLessonPlansMutation, isLoading: isCreatingLessonPlan } =
+  const { mutate: createLessonPlansMutation} =
     useMutation({
       mutationFn: createLessonPlans,
       onSuccess: (data) => {
@@ -79,7 +79,6 @@ const HomePage = () => {
         }}
         isGeneratingPlan={isGeneratingPlan}
         createLessonPlansMutation={createLessonPlansMutation}
-        isCreatingLessonPlan={isCreatingLessonPlan}
         level={level}
         setLevel={setLevel}
         goal={goal}
