@@ -32,7 +32,6 @@ export const PlanSelectorDialog = ({
   const handleSelectPlan = () => {
     if (selectedPlanIndex !== null) {
       onSelect(lessonPlans[selectedPlanIndex]);
-      onClose();
     }
   };
 

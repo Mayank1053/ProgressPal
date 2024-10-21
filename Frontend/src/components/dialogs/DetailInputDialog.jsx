@@ -20,7 +20,6 @@ export const DetailInputDialog = ({
   onForward: GotoPlanSelector,
   isGeneratingPlan,
   createLessonPlansMutation,
-  isCreatingLessonPlan,
   level,
   setLevel,
   goal,
@@ -134,9 +133,9 @@ export const DetailInputDialog = ({
           <DialogFooter>
             <Button
               type="submit"
-              disabled={isGeneratingPlan || isCreatingLessonPlan}
+              disabled={isGeneratingPlan }
             >
-              {isGeneratingPlan || isCreatingLessonPlan ? (
+              {isGeneratingPlan ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Generating Plan...
