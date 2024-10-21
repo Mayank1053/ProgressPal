@@ -22,7 +22,7 @@ import progress from "./routes/progress.routes.js";
 
 // Routes declaration
 app.use("/api/v1/user", userRoutes);
-app.use("/api/v1/course", courseRoutes);
+app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1/knowledge-check", KnowledgeCheck);
 app.use("/api/v1/progress", progress);
 

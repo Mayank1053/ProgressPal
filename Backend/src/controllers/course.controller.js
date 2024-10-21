@@ -32,26 +32,22 @@ const startCourse = asyncHandler(async (req, res) => {
     subtopics: [FinalPlan.Plan.subtopics],
   });
 
-  const lesson = await Course.create({
+  const course = await Course.create({
     title: FinalPlan.Title,
     user: req.user._id,
     level,
     goal,
     daily_study_time: dailyStudyTime,
+    isCompleted: false,
     lessonPlan: lessonPlan._id,
+    progress: 0,
     start_date: startDate,
   });
 
-  const user = await User.findById(req.user._id);
-
-  // Update the user's courses with the new course
-  user.Courses.current_courses.push({
-    courseId: lesson._id,
-    title: lesson.title,
-    progress: 0,
+  // Find the user and add the course to the user's courses
+  await User.findByIdAndUpdate(req.user._id, {
+    $push: { courses: course._id },
   });
-
-  await user.save();
 
   lessonPlan.planText = JSON.stringify(FinalPlan);
 
@@ -59,8 +55,9 @@ const startCourse = asyncHandler(async (req, res) => {
   let currentDate = new Date(startDate);
   lessonPlan.topics.forEach((topic) => {
     topic.subtopics.forEach((subtopic) => {
-      subtopic.date = new Date(currentDate);
+      subtopic.date = new Date(currentDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00
       currentDate.setDate(currentDate.getDate() + 1);
+      subtopic.completed = false;
     });
   });
 
@@ -72,7 +69,8 @@ const startCourse = asyncHandler(async (req, res) => {
   // Add userId & courseId to progress model
   await Progress.create({
     user: req.user._id,
-    course: lesson._id,
+    lessonPlan: lessonPlan._id,
+    overall_progress: 0,
   });
 
   // Generate the content for the first subtopic
@@ -80,7 +78,31 @@ const startCourse = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, lesson, "Course started successfully"));
+    .json(new ApiResponse(200, course, "Course started successfully"));
+});
+
+// Get course/courses data using courseId
+const getCoursesData = asyncHandler(async (req, res) => {
+  const courseIds = req.body;
+  console.log("courseIds: ",courseIds);
+  //CourseIds: [
+  //   "67150987dc4f77b5336ecd75",
+  //   "67156eebbaf9b72288af766c",
+  //   "6714f0693b12dd76946322cd",
+  // ];
+  if (!courseIds) {
+    throw new ApiError(400, "Please provide course ids");
+  }
+
+  const courses = await Course.find({ _id: { $in: courseIds } });
+
+  if (!courses) {
+    throw new ApiError(404, "Courses not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, courses, "Course fetched successfully"));
 });
 
 const getLessonPlan = asyncHandler(async (req, res) => {
@@ -89,6 +111,11 @@ const getLessonPlan = asyncHandler(async (req, res) => {
 
   // Check if the course exists in the database
   const course = await Course.findById(courseId);
+
+  // Check if the course is accessible by the user
+  if (!course.user.equals(req.user._id)) {
+    throw new ApiError(403, "You are not authorized to access this course");
+  }
 
   // Error handling
   if (!course) {
@@ -109,7 +136,6 @@ const getLessonPlan = asyncHandler(async (req, res) => {
       200,
       {
         title: course.title,
-        progress: course.progress,
         lessonPlan,
       },
       "Lesson plan fetched successfully"
@@ -117,39 +143,4 @@ const getLessonPlan = asyncHandler(async (req, res) => {
   );
 });
 
-const getLessonContent = asyncHandler(async (req, res) => {
-  // Get the lesson plan id and Subtopic from the request
-  const { lessonPlanId, subtopic } = req.params;
-
-  // Get the lesson plan from the database
-  const lessonPlan = await LessonPlan.findById(lessonPlanId);
-
-  // Error handling
-  if (!lessonPlan) {
-    throw new ApiError(404, "Lesson plan not found");
-  }
-
-  // Get the contents, objectives, and content of the subtopic
-  const { contents, objectives, content } = lessonPlan.topics
-    .map((topic) => topic.subtopics)
-    .flat()
-    .find((sub) => sub.title === subtopic).lessonContent;
-
-  // Send the content in the response
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { contents, objectives, content },
-        "Content fetched successfully"
-      )
-    );
-});
-
-export {
-  createLessonPlans,
-  startCourse,
-  getLessonPlan,
-  getLessonContent,
-};
+export { createLessonPlans, startCourse, getCoursesData, getLessonPlan };

@@ -25,6 +25,10 @@ const CourseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
     lessonPlan: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "LessonPlan",
@@ -37,8 +41,8 @@ const CourseSchema = new mongoose.Schema(
       type: Date,
     },
     progress: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Progress",
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }
