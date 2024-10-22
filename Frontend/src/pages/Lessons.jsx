@@ -1,6 +1,11 @@
+// React imports
 import { useMemo, useCallback, useState, useEffect } from "react";
+
+// Third-party library imports
 import { useParams, useNavigate } from "react-router-dom";
 import { Lock, Check, BookOpen } from "lucide-react";
+
+// Local component imports
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +16,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { getLessonPlan, getKnowledgeCheck } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import Quiz from "@/components/Quiz";
+
+// Utility function imports
+import { getLessonPlan, getKnowledgeCheck } from "@/lib/api";
 
 const Lessons = () => {
   const navigate = useNavigate();
@@ -23,6 +30,9 @@ const Lessons = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(null);
+
+  const lessonPlan = courseData.lessonPlan || { topics: [] };
+  const title = courseData.title || "";
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -39,9 +49,6 @@ const Lessons = () => {
 
     fetchCourseData();
   }, [courseId]);
-
-  const lessonPlan = courseData.lessonPlan || { topics: [] };
-  const title = courseData.title || "";
 
   const totalLessons = useMemo(() => {
     return lessonPlan.topics.reduce(
