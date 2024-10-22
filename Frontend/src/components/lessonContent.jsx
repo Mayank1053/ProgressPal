@@ -57,26 +57,27 @@ export function LessonContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="min-h-screen bg-background text-foreground p-2 md:p-4">
+      <div className="mb-2 flex items-center justify-between">
         <Button
           variant="ghost"
           onClick={handleBack}
-          className="flex items-center"
+          className="flex items-center text-xs md:text-base"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-1 md:mr-2 h-3 md:h-4 w-3 md:w-4" />
           Back to Lessons
         </Button>
         <Button
+          size="sm"
           variant={isCompleted ? "solid" : "outline"}
           onClick={handleMarkAsComplete}
           className={`${
             isCompleted ? "bg-gray-900 text-white" : ""
-          } disabled:opacity-100 flex items-center`}
+          } disabled:opacity-100 flex items-center text-xs md:text-base`}
           disabled={isCompleted || isMarkingComplete}
         >
           {isMarkingComplete ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-1 md:mr-2 h-3 md:h-4 w-3 md:w-4 animate-spin" />
           ) : isCompleted ? (
             "Completed"
           ) : (
@@ -84,17 +85,25 @@ export function LessonContent() {
           )}
         </Button>
       </div>
-      <h1 className="text-2xl font-bold mb-4">{subtopic.title}</h1>
+      <h1 className="text-xs md:text-sm font-bold mb-2 md:mb-4">
+        {subtopic.title}
+      </h1>
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="objectives">Objectives</TabsTrigger>
-          <TabsTrigger value="content">Lesson Content</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 text-xs md:text-base">
+          <TabsTrigger value="overview" size="sm">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="objectives" size="sm">
+            Objectives
+          </TabsTrigger>
+          <TabsTrigger value="content" size="sm">
+            Lesson Content
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <Card>
-            <CardContent className="pt-6">
-              <ul className="list-disc pl-5 space-y-2">
+            <CardContent className="pt-4 md:pt-6">
+              <ul className="list-disc pl-4 md:pl-5 space-y-1 md:space-y-2 text-xs md:text-base">
                 {lessonContent.overview.map((item, index) => (
                   <li key={index}>{item}</li>
                 ))}
@@ -104,11 +113,11 @@ export function LessonContent() {
         </TabsContent>
         <TabsContent value="objectives">
           <Card>
-            <CardContent className="pt-6">
-              <ul className="space-y-2">
+            <CardContent className="pt-4 md:pt-6">
+              <ul className="space-y-1 md:space-y-2 text-xs md:text-base">
                 {lessonContent.objectives.map((objective, index) => (
                   <li key={index} className="flex items-start">
-                    <CheckCircle className="mr-2 h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="mr-1 md:mr-2 h-4 md:h-5 w-4 md:w-5 text-green-500 flex-shrink-0 mt-0.5" />
                     <span>{objective}</span>
                   </li>
                 ))}
@@ -117,26 +126,25 @@ export function LessonContent() {
           </Card>
         </TabsContent>
         <TabsContent value="content">
-          <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
+          <ScrollArea className="h-[70vh] md:h-[60vh] w-full rounded-md border p-2 md:p-4 text-sm md:text-base">
             {lessonContent.content.split("\n\n").map((paragraph, index) => (
               <Fragment key={index}>
                 {paragraph.startsWith("##") ? (
-                  <h2 className="text-xl font-semibold mt-4 mb-2">
+                  <h2 className="text-lg md:text-xl font-semibold mt-2 md:mt-4 mb-1 md:mb-2">
                     {paragraph.replace(/^##\s/, "")}
                   </h2>
                 ) : paragraph.startsWith("###") ? (
-                  <h3 className="text-lg font-semibold mt-4 mb-2">
-                    {paragraph.replace(/^###\s/, "")} // Remove the '###' from
-                    the beginning of the paragraph
+                  <h3 className="text-base md:text-lg font-semibold mt-2 md:mt-4 mb-1 md:mb-2">
+                    {paragraph.replace(/^###\s/, "")}
                   </h3>
                 ) : paragraph.startsWith("```") ? (
-                  <pre className="bg-muted p-2 rounded-md my-2 overflow-x-auto">
+                  <pre className="bg-muted p-1 md:p-2 rounded-md my-1 md:my-2 overflow-x-auto">
                     <code>
                       {paragraph.replace(/```\w*\n?/, "").replace(/```$/, "")}
                     </code>
                   </pre>
                 ) : (
-                  <p className="mb-4">{paragraph}</p>
+                  <p className="mb-2 md:mb-4">{paragraph}</p>
                 )}
               </Fragment>
             ))}
