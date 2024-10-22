@@ -33,22 +33,9 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     },
-    Courses: {
-      current_courses: [
-        {
-          // Courses currently being taken by the user
-          courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
-          title: { type: String },
-          progress: { type: Number },
-        },
-      ],
-      completed_courses: [
-        {
-          // Courses completed by the user
-          courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
-          title: { type: String },
-        },
-      ],
+    courses: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Course",
     },
     refreshToken: {
       type: String,

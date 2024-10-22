@@ -386,8 +386,6 @@ const updateUserDetails = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
   const user = req.user;
 
-  console.log(user);
-
   if (!user) {
     throw new ApiError(404, "User not found");
   }
