@@ -1,0 +1,56 @@
+{
+  "type": "object",
+  "properties": {
+    "lessonContent": {
+      "type": "object",
+      "properties": {
+        "objectives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "overview": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "required": ["objectives", "overview", "content"]
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_text": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correct_answer": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_text",
+          "options",
+          "correct_answer",
+          "explanation"
+        ]
+      }
+    }
+  },
+  "required": ["lessonContent"]
+}

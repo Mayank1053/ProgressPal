@@ -52,5 +52,13 @@ export const markComplete = async (data) => {
 };
 
 export const getKnowledgeCheck = async (data) => {
-  return await API.get(`knowledge-check/`, data);
+  return await API.post(`knowledge-check/`, data);
+};
+
+export const saveKnowledgeCheck = async (data) => {
+  return await API.patch(`knowledge-check/`, data);
+}
+
+export const getProgress = async () => {
+  return await API.get("progress/");
 };

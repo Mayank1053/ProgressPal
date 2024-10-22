@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home, Book, BarChart2, GraduationCap } from "lucide-react";
+import { Home, Book, BarChart2, User2 } from "lucide-react";
 
 export const BottomNav = () => {
   const currentPath = window.location.pathname;
@@ -11,27 +11,27 @@ export const BottomNav = () => {
         <ul className="flex justify-between items-center">
           <NavItem
             href="/"
-            icon={<Home className="h-6 w-6" />}
+            icon={<Home className="h-4 w-4" />}
             label="Home"
             active={currentPath === "/"}
           />
           <NavItem
             href="/courses"
-            icon={<Book className="h-6 w-6" />}
+            icon={<Book className="h-4 w-4" />}
             label="Courses"
             active={currentPath.startsWith("/courses")}
           />
           <NavItem
             href="/progress"
-            icon={<BarChart2 className="h-6 w-6" />}
+            icon={<BarChart2 className="h-4 w-4" />}
             label="Progress"
             active={currentPath === "/progress"}
           />
           <NavItem
-            href="/tests"
-            icon={<GraduationCap className="h-6 w-6" />}
-            label="Tests"
-            active={currentPath === "/tests"}
+            href="/profile"
+            icon={<User2 className="h-4 w-4" />}
+            label="Profile"
+            active={currentPath === "/profile"}
           />
         </ul>
       </div>

@@ -20,7 +20,8 @@ import Lessons from "./pages/Lessons.jsx";
 import Progress from "./pages/Progress";
 import Tests from "./pages/Tests";
 import { CoursesPage } from "./pages/Courses";
-import { LessonContent } from "./components/lesson-content-page";
+import { LessonContent } from "./components/lessonContent";
+import { ReviewContentComponent } from "./components/reviewContent";
 
 function App() {
   const navigate = useNavigate();
@@ -38,6 +39,10 @@ function App() {
         <Route
           path="courses/content/:subtopicTitle"
           element={<LessonContent />}
+        />
+        <Route
+          path="courses/reviewContent"
+          element={<ReviewContentComponent />}
         />
         <Route path="progress" element={<Progress />} />
         <Route path="tests" element={<Tests />} />

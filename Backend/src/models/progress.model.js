@@ -11,15 +11,16 @@ const progressSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "LessonPlan",
     },
-    daily_progress: {
-      date: {
-        type: Date,
+    daily_progress: [
+      {
+        day: {
+          type: Number,
+        },
+        score: {
+          type: Number,
+        },
       },
-      score: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "KnowledgeCheck",
-      },
-    },
+    ],
     overall_progress: {
       // Total progress of the current course => % of completed subtopics to total subtopics
       type: Number, // 0-100 => 0% - 100%

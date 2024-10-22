@@ -3,7 +3,8 @@ import { useMemo, useCallback, useState, useEffect } from "react";
 
 // Third-party library imports
 import { useParams, useNavigate } from "react-router-dom";
-import { Lock, Check, BookOpen } from "lucide-react";
+import { Check, BookOpen, Loader2} from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 
 // Local component imports
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,11 @@ import { Spinner } from "@/components/ui/spinner";
 import Quiz from "@/components/Quiz";
 
 // Utility function imports
-import { getLessonPlan, getKnowledgeCheck } from "@/lib/api";
+import {
+  getLessonPlan,
+  getKnowledgeCheck,
+  saveKnowledgeCheck,
+} from "@/lib/api";
 
 const Lessons = () => {
   const navigate = useNavigate();
@@ -84,25 +89,48 @@ const Lessons = () => {
     });
   };
 
-  const handleKnowledgeCheck = async (topicIndex) => {
-    try {
-      const response = await getKnowledgeCheck(
-        { lessonPlanId: lessonPlan._id },
-        topicIndex
-      );
-      setQuizQuestions(response.data.questions);
-      setCurrentTopicIndex(topicIndex);
+  const { mutate: getKnowledgeCheckMutation } = useMutation({
+    mutationFn: getKnowledgeCheck,
+    onSuccess: (response) => {
+      console.log("Knowledge check fetched successfully:", response);
+      setQuizQuestions(response.data);
       setShowQuiz(true);
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Failed to fetch knowledge check:", error);
-    }
+    },
+  });
+
+  const handleKnowledgeCheck = (index) => {
+    setCurrentTopicIndex(index);
+    getKnowledgeCheckMutation({
+      LessonPlanId: lessonPlan._id,
+      topicIndex: index,
+    });
   };
 
-  const handleQuizComplete = (score) => {
+  const { mutate: saveKnowledgeCheckMutation, isPending: creatingReviewContent } = useMutation({
+    mutationFn: saveKnowledgeCheck,
+    onSuccess: () => {
+      console.log("Knowledge check saved successfully");
+    },
+    onError: (error) => {
+      console.error("Failed to save knowledge check:", error);
+    },
+  });
+
+  const handleQuizComplete = (score, wrongAnswered) => {
     // Here you would typically update the backend with the quiz results
     console.log(
       `Quiz completed for topic ${currentTopicIndex}. Score: ${score}`
     );
+    saveKnowledgeCheckMutation({
+      lessonPlanId: lessonPlan._id,
+      topicIndex: currentTopicIndex,
+      knowledgeCheckId: lessonPlan.topics[currentTopicIndex].quiz,
+      score,
+      wrongAnswered,
+    });
     setShowQuiz(false);
     // You might want to update the local state to reflect the completed knowledge check
     const updatedTopics = [...lessonPlan.topics];
@@ -148,81 +176,98 @@ const Lessons = () => {
           ).length;
           const isTopicCompleted =
             topicCompletedCount === topic.subtopics.length;
+          // Check if knowledge check is available for the topic and user has not completed it
+          // why is the knowledge check shows up for all the topics when it is only available for the completed topic?
           const isKnowledgeCheckAvailable =
             isTopicCompleted && !topic.knowledgeCheckCompleted;
-          return (
+            return (
             <AccordionItem
               value={`topic-${index}`}
               key={index}
               className={`border rounded-lg ${
-                isTopicCompleted ? "border-gray-600" : ""
+              isTopicCompleted ? "border-gray-600" : ""
               }`}
             >
               <AccordionTrigger className="px-2 py-2 hover:no-underline hover:bg-muted/50">
-                <div className="flex justify-between items-center w-full text-left gap-2">
-                  <span className="font-semibold flex items-center gap-2">
-                    {topic.topic}
-                    {isTopicCompleted && (
-                      <Check className="h-4 w-4 text-green-500" />
-                    )}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {topicCompletedCount}/{topic.subtopics.length}
-                  </span>
-                </div>
+              <div className="flex justify-between items-center w-full text-left gap-2">
+                <span className="font-semibold flex items-center gap-2">
+                {topic.topic}
+                {isTopicCompleted && (
+                  <Check className="h-4 w-4 text-green-500" />
+                )}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                {topicCompletedCount}/{topic.subtopics.length}
+                </span>
+              </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-2 p-2">
-                  {topic.subtopics.map((subtopic, subIndex) => {
-                    const locked = isLocked(subtopic.date);
-                    return (
-                      <Card
-                        key={subIndex}
-                        className={`bg-muted/50 ${locked ? "opacity-50" : ""} ${
-                          subtopic.completed ? "border border-gray-400" : ""
-                        } text-left`}
-                      >
-                        <CardHeader
-                          className={`p-2 cursor-pointer ${
-                            locked ? "cursor-not-allowed" : ""
-                          }`}
-                          onClick={() =>
-                            !locked && handleSubtopicClick(index, subIndex)
-                          }
-                        >
-                          <CardTitle className="text-sm flex justify-between items-center">
-                            <span className="flex items-center gap-2">
-                              {subtopic.title}
-                              {locked && <Lock className="h-4 w-4" />}
-                              {subtopic.completed && (
-                                <Check className="h-4 w-4 text-green-500" />
-                              )}
-                            </span>
-                            <Badge
-                              variant={
-                                subtopic.completed ? "default" : "outline"
-                              }
-                            >
-                              {subtopic.completed ? "Completed" : "Incomplete"}
-                            </Badge>
-                          </CardTitle>
-                        </CardHeader>
-                      </Card>
-                    );
-                  })}
-                  {isKnowledgeCheckAvailable && (
-                    <Button
-                      onClick={() => handleKnowledgeCheck(index)}
-                      className="w-full mt-2"
-                    >
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      Take Knowledge Check
-                    </Button>
+              <div className="space-y-2 p-2">
+                {topic.subtopics.map((subtopic, subIndex) => {
+                const locked = isLocked(subtopic.date);
+                return (
+                  <Card
+                  key={subIndex}
+                  className={`bg-muted/50 ${locked ? "opacity-50" : ""} ${
+                  subtopic.completed ? "border border-green-500" : ""
+                  } text-left`}
+                  >
+                  <CardHeader
+                  className={`p-2 cursor-pointer ${
+                  locked ? "cursor-not-allowed" : ""
+                  }`}
+                  onClick={() =>
+                  !locked && handleSubtopicClick(index, subIndex)
+                  }
+                  >
+                  <CardTitle className="text-xs md:text-sm flex justify-between items-center">
+                  {subtopic.title}
+                  <Badge
+                    variant={
+                    subtopic.completed ? "default" : "outline"
+                    }
+                  >
+                    {subtopic.completed ? "Completed" : "Incomplete"}
+                  </Badge>
+                  </CardTitle>
+                  </CardHeader>
+                  </Card>
+                );
+                })}
+                {/* Show knowledge check button if available */}
+                {isKnowledgeCheckAvailable && (
+                <Button
+                  onClick={() => handleKnowledgeCheck(index)}
+                  className="w-full mt-2"
+                >
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Take Knowledge Check
+                </Button>
+                )}
+                {/* When the knowledgeCheckIsCompleted show the reviewContent in LessonContentPage with only content tab*/}
+                {topic.knowledgeCheckCompleted && (
+                <Button
+                  onClick={() =>
+                  navigate(`/courses/reviewContent`, {
+                    state: {
+                    reviewContent: topic.reviewContent,
+                    },
+                  })
+                  }
+                  className="w-full mt-2"
+                >
+                  {creatingReviewContent ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                  <BookOpen className="mr-2 h-4 w-4" />
                   )}
-                </div>
+                  Review Content
+                </Button>
+                )}
+              </div>
               </AccordionContent>
             </AccordionItem>
-          );
+            );
         })}
       </Accordion>
     </div>

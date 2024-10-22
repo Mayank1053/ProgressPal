@@ -54,6 +54,8 @@ const startCourse = asyncHandler(async (req, res) => {
   // Add dates to all the subtopics for a daily reminder
   let currentDate = new Date(startDate);
   lessonPlan.topics.forEach((topic) => {
+    topic.knowledgeCheckCompleted = false;
+    topic.reviewContent = "";
     topic.subtopics.forEach((subtopic) => {
       subtopic.date = new Date(currentDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00
       currentDate.setDate(currentDate.getDate() + 1);

@@ -60,9 +60,13 @@ const lessonPlanSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "KnowledgeCheck",
       },
-      topicsToReview: {
+      knowledgeCheckCompleted: {
+        type: Boolean,
+        default: false,
+      },
+      reviewContent: {
         // topics to review after the quiz and answered incorrectly
-        type: [String], // Will add the name of the topic of the question here and use these to make a review chapter/lesson
+        type: String, // Will add the name of the topic of the question here and use these to make a review chapter/lesson
       },
     },
   },
