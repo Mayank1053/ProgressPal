@@ -145,12 +145,25 @@ const generateContent = async (lessonPlanId, Indexes) => {
   console.log("lessonContent: ", lessonContent);
   console.log("quiz: ", questions);
 
-  const knowledgeCheck = await KnowledgeCheck.create({
+  // find if the knowledgeCheck exist for this topic
+  const knowledgeCheck = await KnowledgeCheck.findOne({
     lessonPlan: lessonPlanId,
     topic: topicIndex,
-    questions,
   });
-  console.log("knowledgeCheck: ", knowledgeCheck);
+
+  // if knowledgeCheck exist, add the questions to the knowledgeCheck
+  if (knowledgeCheck) {
+    knowledgeCheck.questions = questions; // this will add the new questions to the existing questions array
+    await knowledgeCheck.save();
+  } else {
+    // if knowledgeCheck does not exist, create a new knowledgeCheck
+    const knowledgeCheck = await KnowledgeCheck.create({
+      lessonPlan: lessonPlanId,
+      topic: topicIndex,
+      questions,
+    });
+    console.log("knowledgeCheck: ", knowledgeCheck);
+  }
 
   // add the knowledge check id to the lesson plan
   topic.quiz = knowledgeCheck._id;
