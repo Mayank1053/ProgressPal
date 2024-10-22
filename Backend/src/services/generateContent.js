@@ -5,9 +5,7 @@ import { generateLessonContent } from "../services/generativeAI.service.js";
 import KnowledgeCheck from "../models/knowledgeCheck.model.js";
 
 const generateContent = async (lessonPlanId, Indexes) => {
-  // Get the title, level, goal, and daily study time from the course object based on the lesson plan id
-  console.log("lessonPlanId: ", lessonPlanId); // lessonPlanId:  new ObjectId('66f9962bd60e6f8e395a816f')
-  console.log("subtopicIndex: ", Indexes); // [0 0] => [topicIndex, subtopicIndex]
+  // Get the title, level, goal, and daily study time from the course object based on the lesson plan id and store them in a system prompt object with proper structure for the generative AI service
 
   // Find the course based on the lesson plan id
   const course = await Course.findOne({
@@ -110,8 +108,6 @@ const generateContent = async (lessonPlanId, Indexes) => {
   const topic = lessonPlan.topics[topicIndex];
   const subtopic = topic.subtopics[subtopicIndex];
 
-  console.log("subtopic: ", subtopic);
-
   // Error handling
   if (!subtopic) {
     throw new ApiError(404, "Subtopic not found");
@@ -131,8 +127,6 @@ const generateContent = async (lessonPlanId, Indexes) => {
   // Stringify the system prompt
   const stringifySystemPrompt = JSON.stringify(systemPrompt);
 
-  console.log("systemPrompt: ", stringifySystemPrompt);
-
   // Generate the prompt for the generative AI service based on the subtopic
   const prompt = `Generate content for the subtopic: ${subtopic.title} based on the lessonPlan`;
 
@@ -141,9 +135,6 @@ const generateContent = async (lessonPlanId, Indexes) => {
     stringifySystemPrompt,
     prompt
   );
-
-  console.log("lessonContent: ", lessonContent);
-  console.log("quiz: ", questions);
 
   // find if the knowledgeCheck exist for this topic
   const knowledgeCheck = await KnowledgeCheck.findOne({
@@ -162,11 +153,10 @@ const generateContent = async (lessonPlanId, Indexes) => {
       topic: topicIndex,
       questions,
     });
-    console.log("knowledgeCheck: ", knowledgeCheck);
+    topic.quiz = knowledgeCheck._id;
   }
 
   // add the knowledge check id to the lesson plan
-  topic.quiz = knowledgeCheck._id;
 
   // Update the subtopic content object with the generated content
   subtopic.lessonContent = lessonContent;
