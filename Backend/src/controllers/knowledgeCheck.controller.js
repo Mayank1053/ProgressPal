@@ -2,7 +2,7 @@ import asyncHandler from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import KnowledgeCheck from "../models/knowledgeCheck.model.js";
-import LessonPlan from "../models/lessonPlan.model.js";
+import LessonPlan from "../models/LessonPlan.model.js";
 import Progress from "../models/progress.model.js";
 import {
   generateKnowledgeCheck,
@@ -34,11 +34,12 @@ const createKnowledgeCheck = asyncHandler(async (req, res) => {
     );
 });
 
-const knowledgeCheck = asyncHandler(async (req, res) => {
-  const { subtopic } = req.params;
+const getKnowledgeCheck = asyncHandler(async (req, res) => {
+  const { LessonPlanId , topicIndex } = req.body;
 
   const knowledgeCheck = await KnowledgeCheck.findOne({
-    subtopic: subtopic,
+    lessonPlan: LessonPlanId,
+    topic: topicIndex,
   });
 
   if (!knowledgeCheck) {
@@ -98,4 +99,4 @@ const saveKnowledgeCheck = asyncHandler(async (req, res) => {
     );
 });
 
-export { knowledgeCheck, createKnowledgeCheck, saveKnowledgeCheck };
+export { getKnowledgeCheck, createKnowledgeCheck, saveKnowledgeCheck };

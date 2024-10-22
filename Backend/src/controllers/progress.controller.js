@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import User from "../models/user.model.js";
+// import User from "../models/user.model.js";
 import Progress from "../models/progress.model.js";
 import Course from "../models/course.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
@@ -9,7 +9,11 @@ import { generateContent } from "../services/generateContent.js";
 
 const markTopicComplete = asyncHandler(async (req, res) => {
   // Get the subtopic(string) from the request
-  const { lessonPlanId, subtopic } = req.params;
+  const data = req.body;
+  const { lessonPlanId, subtopicIndex } = data;
+  /*
+  subtopicIndex: [0,1] => [topicIndex, subtopicIndex]
+  */
 
   // Get the lesson plan from the database
   const lessonPlan = await LessonPlan.findById(lessonPlanId);
@@ -19,121 +23,91 @@ const markTopicComplete = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Lesson Plan not found");
   }
 
-  // Find the topic that contains the subtopic
-  let subtopicIndex = -1;
-  let topicIndex = -1;
+  // Find the subtopic in the lesson plan and mark it as completed
+  const [index, subIndex] = subtopicIndex;
 
-  for (let i = 0; i < lessonPlan.topics.length; i++) {
-    const subtopics = lessonPlan.topics[i].subtopics;
-    const index = subtopics.findIndex((sub) => sub.title === subtopic);
-    if (index !== -1) {
-      subtopicIndex = index;
-      topicIndex = i;
-      break;
-    }
-  }
-
-  // Error handling
-  if (topicIndex === -1) {
-    console.error("Topic containing the subtopic not found");
-    throw new ApiError(404, "Topic containing the subtopic not found");
-  }
-
-  // Error handling
-  if (subtopicIndex === -1) {
-    console.error("Subtopic not found");
-    throw new ApiError(404, "Subtopic not found");
-  }
   // check if the subtopic is already completed
-  if (lessonPlan.topics[topicIndex].subtopics[subtopicIndex].completed) {
+  if (lessonPlan.topics[index].subtopics[subIndex].completed) {
     // Skip if the subtopic is already completed
     return res.json(new ApiResponse(200, {}, "Subtopic already completed"));
   } else {
     // Mark the subtopic as completed
-    lessonPlan.topics[topicIndex].subtopics[subtopicIndex].completed = true;
+    lessonPlan.topics[index].subtopics[subIndex].completed = true;
 
     // Save the lesson plan
     await LessonPlan.findByIdAndUpdate(lessonPlanId, lessonPlan);
 
-    // Generate the content for the next subtopic by calling the generateContent service function by passing the lessonPlan id and the next days date
-    await generateContent(lessonPlanId, new Date());
+    // Get the total number of subtopics
+    const totalSubtopics = lessonPlan.topics
+      .map((topic) => topic.subtopics)
+      .flat().length;
 
-    // Set the overall progress of the user
-    await setOverallProgress(req.user._id, lessonPlanId);
+    // Get the number of completed subtopics
+    const completedSubtopics = lessonPlan.topics
+      .map((topic) => topic.subtopics)
+      .flat()
+      .filter((subtopic) => subtopic.completed).length;
+
+    // Calculate the progress percentage
+    const progressPercentage =
+      Math.round((completedSubtopics / totalSubtopics) * 1000) / 10;
+
+    // Get the next indexes with checking if the subtopic is the last subtopic in any topic or the last subtopic in the last topic.
+    // If the subtopic is the last subtopic in any topic, then the next subtopic will be the first subtopic of the next topic
+    // If the subtopic is the last subtopic in the last topic, then the course is completed
+    if (subIndex === lessonPlan.topics[index].subtopics.length - 1) {
+      if (index === lessonPlan.topics.length - 1) {
+        // If the subtopic is the last subtopic in the last topic, then the course is completed
+        await Progress.findOneAndUpdate(
+          { lessonPlan: lessonPlanId },
+          { progress: 100 }
+        );
+
+        // Update the progress in the course model
+        await Course.findOneAndUpdate(
+          { lessonPlan: lessonPlanId },
+          { progress: 100 }
+        );
+
+        return res.json(
+          new ApiResponse(200, lessonPlan, "Course marked as completed")
+        );
+      } else {
+        // Move to the first subtopic of the next topic
+        await generateContent(lessonPlanId, [index + 1, 0]);
+      }
+    } else {
+      // Generate the content for the next subtopic by calling the generateContent service function by passing the lessonPlan id and the next subtopic index
+      await generateContent(lessonPlanId, [index, subIndex + 1]);
+    }
+
+    await Progress.findOneAndUpdate(
+      {
+        lessonPlan: lessonPlanId,
+      },
+      {
+        progress: progressPercentage,
+      }
+    );
+
+    // update the progress in the course model
+    await Course.findOneAndUpdate(
+      { lessonPlan: lessonPlanId },
+      {
+        progress: progressPercentage,
+      }
+    );
 
     res.json(new ApiResponse(200, lessonPlan, "Subtopic marked as completed"));
   }
 });
-
-const setOverallProgress = async (userId, lessonPlanId) => {
-  // Get the user from the database
-  const user = await User.findById(userId);
-
-  // Error handling
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  // Get the progress from the progress model
-  const progress = await Progress.findOne({ user: userId });
-
-  // Error handling
-  if (!progress) {
-    throw new ApiError(404, "Progress not found");
-  }
-
-  // Get the lesson plan from the database
-  const lessonPlan = await LessonPlan.findById(lessonPlanId);
-
-  // Error handling
-  if (!lessonPlan) {
-    throw new ApiError(404, "Lesson Plan not found");
-  }
-
-  // Get the total number of subtopics
-  const totalSubtopics = lessonPlan.topics
-    .map((topic) => topic.subtopics)
-    .flat().length;
-
-  // Get the number of completed subtopics
-  const completedSubtopics = lessonPlan.topics
-    .map((topic) => topic.subtopics)
-    .flat()
-    .filter((subtopic) => subtopic.completed).length;
-
-  // Calculate & update the overall progress 
-  progress.overall_progress = (completedSubtopics / totalSubtopics) * 100;
-
-  // markModified
-  progress.markModified("overall_progress");
-
-  // if the overall progress is 100% then move the course to the completed courses array in the user model
-  if (progress.overall_progress === 100) {
-    // Remove the course from the current_courses array
-    user.Courses.current_courses = user.Courses.current_courses.filter(
-      (course) => course !== lessonPlanId
-    );
-
-    // Add the course to the completed courses array
-    user.Courses.completed_courses.push(lessonPlanId);
-
-    // markModified
-    user.markModified("User.Courses");
-    
-    // Save the user
-    await user.save();
-  }
-
-  // Save the progress
-  await progress.save();
-};
 
 const getProgress = asyncHandler(async (req, res) => {
   // Get the user id from the request
   const userId = req.user._id;
 
   // Get the progress from the database
-  const progress = await Progress.findOne({ user : userId });
+  const progress = await Progress.findOne({ user: userId });
 
   // Error handling
   if (!progress) {
@@ -148,7 +122,6 @@ const getProgress = asyncHandler(async (req, res) => {
   };
 
   console.log(userProgress);
-  
 
   // Return the response
   res.json(new ApiResponse(200, userProgress, "User Progress Data"));

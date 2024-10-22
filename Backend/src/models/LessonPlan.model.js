@@ -24,7 +24,7 @@ const lessonPlanSchema = new mongoose.Schema(
           index: true,
         },
         lessonContent: {
-          contents: {
+          overview: {
             type: [String],
           },
           objectives: {

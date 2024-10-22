@@ -2,8 +2,13 @@ import mongoose from "mongoose";
 
 const knowledgeCheckSchema = new mongoose.Schema(
   {
-    subtopic: {
-      type: String,
+    lessonPlan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "LessonPlan",
+      required: true,
+    },
+    topic: {
+      type: Number,
       required: true,
     },
     questions: [

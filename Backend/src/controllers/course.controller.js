@@ -74,7 +74,7 @@ const startCourse = asyncHandler(async (req, res) => {
   });
 
   // Generate the content for the first subtopic
-  await generateContent(lessonPlan._id, new Date());
+  await generateContent(lessonPlan._id, [0, 0]);
 
   return res
     .status(200)
@@ -84,7 +84,7 @@ const startCourse = asyncHandler(async (req, res) => {
 // Get course/courses data using courseId
 const getCoursesData = asyncHandler(async (req, res) => {
   const courseIds = req.body;
-  console.log("courseIds: ",courseIds);
+  // console.log("courseIds: ",courseIds);
   //CourseIds: [
   //   "67150987dc4f77b5336ecd75",
   //   "67156eebbaf9b72288af766c",

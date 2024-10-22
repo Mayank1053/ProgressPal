@@ -7,9 +7,9 @@ const progressSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    course: {
+    lessonPlan: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
+      ref: "LessonPlan",
     },
     daily_progress: {
       date: {
