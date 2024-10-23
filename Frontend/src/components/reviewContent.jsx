@@ -1,10 +1,9 @@
-import { React, Fragment } from "react";
+import { React } from "react";
 import { ArrowLeft} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import Markdown from "markdown-to-jsx";
+import ReactMarkdown from "react-markdown";
 
 export function ReviewContentComponent() {
   const navigate = useNavigate();
@@ -27,30 +26,9 @@ export function ReviewContentComponent() {
           Back to Lessons
         </Button>
       </div>
-      <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
-        {reviewContent.split("\n\n").map((paragraph, index) => (
-          <Fragment key={index}>
-            {paragraph.startsWith("##") ? (
-              <h2 className="text-xl font-semibold mt-4 mb-2">
-                {paragraph.replace(/^##\s/, "")}
-              </h2>
-            ) : paragraph.startsWith("###") ? (
-              <h3 className="text-lg font-semibold mt-4 mb-2">
-                {paragraph.replace(/^###\s/, "")} // Remove the '###' from the
-                beginning of the paragraph
-              </h3>
-            ) : paragraph.startsWith("```") ? (
-              <pre className="bg-muted p-2 rounded-md my-2 overflow-x-auto">
-                <code>
-                  {paragraph.replace(/```\w*\n?/, "").replace(/```$/, "")}
-                </code>
-              </pre>
-            ) : (
-              <p className="mb-4">{paragraph}</p>
-            )}
-          </Fragment>
-        ))}
-      </ScrollArea>
+      <div className="prose max-w-none p-4 border rounded bg-white h-[calc(100vh-200px)] overflow-auto">
+        <ReactMarkdown>{reviewContent}</ReactMarkdown>
+      </div>
     </div>
   );
 }

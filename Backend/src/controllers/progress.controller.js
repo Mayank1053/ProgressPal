@@ -2,6 +2,7 @@ import asyncHandler from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 // import User from "../models/user.model.js";
+import User from "../models/user.model.js";
 import Progress from "../models/progress.model.js";
 import Course from "../models/course.model.js";
 import LessonPlan from "../models/LessonPlan.model.js";
@@ -60,14 +61,18 @@ const markTopicComplete = asyncHandler(async (req, res) => {
         // If the subtopic is the last subtopic in the last topic, then the course is completed
         await Progress.findOneAndUpdate(
           { lessonPlan: lessonPlanId },
-          { progress: 100 }
+          { overall_progress: 100 }
         );
 
         // Update the progress in the course model
         await Course.findOneAndUpdate(
           { lessonPlan: lessonPlanId },
-          { progress: 100 }
+          { lessonProgress: 100 }
         );
+
+        await User.findByIdAndUpdate(req.user._id, {
+          isLearning: false,
+        });
 
         return res.json(
           new ApiResponse(200, lessonPlan, "Course marked as completed")
@@ -94,7 +99,7 @@ const markTopicComplete = asyncHandler(async (req, res) => {
     await Course.findOneAndUpdate(
       { lessonPlan: lessonPlanId },
       {
-        progress: progressPercentage,
+        lessonProgress: progressPercentage,
       }
     );
 
@@ -116,7 +121,7 @@ const getProgress = asyncHandler(async (req, res) => {
 
   // Get the user daily progress, overall progress and return it
   const userProgress = {
-    course: progress.course,
+    lessonPlanId: progress.lessonPlan,
     daily_progress: progress.daily_progress,
     overall_progress: progress.overall_progress,
   };

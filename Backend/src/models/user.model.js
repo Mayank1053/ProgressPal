@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
     },
     verified: { type: Boolean, required: true, default: false },
+    isLearning: { type: Boolean, default: false },
     preferences: {
       dailyReminderTime: {
         // Time in HH:MM format

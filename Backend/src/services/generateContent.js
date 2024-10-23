@@ -131,10 +131,19 @@ const generateContent = async (lessonPlanId, Indexes) => {
   const prompt = `Generate content for the subtopic: ${subtopic.title} based on the lessonPlan`;
 
   // Generate the lesson content based on the lesson plan and course data
-  const { lessonContent, questions } = await generateLessonContent(
-    stringifySystemPrompt,
-    prompt
-  );
+  let lessonContent, questions;
+  try {
+    ({ lessonContent, questions } = await generateLessonContent(
+      stringifySystemPrompt,
+      prompt
+    ));
+  } catch (error) {
+    console.log("Error generating lesson content, retrying...", error);
+    ({ lessonContent, questions } = await generateLessonContent(
+      stringifySystemPrompt,
+      prompt
+    ));
+  }
 
   // find if the knowledgeCheck exist for this topic
   const knowledgeCheck = await KnowledgeCheck.findOne({

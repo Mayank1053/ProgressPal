@@ -1,15 +1,14 @@
-import { React, useState, Fragment } from "react";
+import { React, useState } from "react";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { markComplete } from "@/lib/api";
 import { Loader2 } from "lucide-react";
-import Markdown from "markdown-to-jsx";
+import ReactMarkdown from "react-markdown";
 
 export function LessonContent() {
   const navigate = useNavigate();
@@ -55,6 +54,20 @@ export function LessonContent() {
       subtopicIndex,
     });
   };
+  const markdown = `# Hello, Markdown!
+  ## Lists
+
+  ### Ordered List
+ 1. Item 1
+ 2. Item 2
+ 3. Item 3
+
+ ### Unordered List
+ - Bullet 1
+ - Bullet 2
+   - Sub-bullet A
+   - Sub-bullet B
+ - Bullet 3`;
 
   return (
     <div className="min-h-screen bg-background text-foreground p-2 md:p-4">
@@ -85,9 +98,7 @@ export function LessonContent() {
           )}
         </Button>
       </div>
-      <h1 className="text-xs md:text-sm font-bold mb-2 md:mb-4">
-        {subtopic.title}
-      </h1>
+      <h1 className="md:text-sm font-bold mb-2 md:mb-4">{subtopic.title}</h1>
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-3 text-xs md:text-base">
           <TabsTrigger value="overview" size="sm">
@@ -126,29 +137,9 @@ export function LessonContent() {
           </Card>
         </TabsContent>
         <TabsContent value="content">
-          <ScrollArea className="h-[70vh] md:h-[60vh] w-full rounded-md border p-2 md:p-4 text-sm md:text-base">
-            {lessonContent.content.split("\n\n").map((paragraph, index) => (
-              <Fragment key={index}>
-                {paragraph.startsWith("##") ? (
-                  <h2 className="text-lg md:text-xl font-semibold mt-2 md:mt-4 mb-1 md:mb-2">
-                    {paragraph.replace(/^##\s/, "")}
-                  </h2>
-                ) : paragraph.startsWith("###") ? (
-                  <h3 className="text-base md:text-lg font-semibold mt-2 md:mt-4 mb-1 md:mb-2">
-                    {paragraph.replace(/^###\s/, "")}
-                  </h3>
-                ) : paragraph.startsWith("```") ? (
-                  <pre className="bg-muted p-1 md:p-2 rounded-md my-1 md:my-2 overflow-x-auto">
-                    <code>
-                      {paragraph.replace(/```\w*\n?/, "").replace(/```$/, "")}
-                    </code>
-                  </pre>
-                ) : (
-                  <p className="mb-2 md:mb-4">{paragraph}</p>
-                )}
-              </Fragment>
-            ))}
-          </ScrollArea>
+          <div className="prose max-w-none p-4 border rounded bg-white h-[calc(100vh-200px)] overflow-auto">
+            <ReactMarkdown>{lessonContent.content}</ReactMarkdown>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

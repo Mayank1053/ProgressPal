@@ -32,6 +32,13 @@ const startCourse = asyncHandler(async (req, res) => {
     subtopics: [FinalPlan.Plan.subtopics],
   });
 
+  // Add userId & courseId to progress model
+  const progress = await Progress.create({
+    user: req.user._id,
+    lessonPlan: lessonPlan._id,
+    overall_progress: 0,
+  });
+
   const course = await Course.create({
     title: FinalPlan.Title,
     user: req.user._id,
@@ -40,25 +47,28 @@ const startCourse = asyncHandler(async (req, res) => {
     daily_study_time: dailyStudyTime,
     isCompleted: false,
     lessonPlan: lessonPlan._id,
-    progress: 0,
+    lessonProgress: 0,
+    progress: progress._id,
     start_date: startDate,
   });
 
   // Find the user and add the course to the user's courses
   await User.findByIdAndUpdate(req.user._id, {
     $push: { courses: course._id },
+    isLearning: true,
   });
 
   lessonPlan.planText = JSON.stringify(FinalPlan);
 
-  // Add dates to all the subtopics for a daily reminder
+  // Add dates to all the topics for a daily reminder
+  // set the time to 00:00:00
   let currentDate = new Date(startDate);
   lessonPlan.topics.forEach((topic) => {
     topic.knowledgeCheckCompleted = false;
     topic.reviewContent = "";
+    topic.start_date = new Date(currentDate.setHours(0, 0, 0, 0));
+    currentDate.setDate(currentDate.getDate() + 1);
     topic.subtopics.forEach((subtopic) => {
-      subtopic.date = new Date(currentDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00
-      currentDate.setDate(currentDate.getDate() + 1);
       subtopic.completed = false;
     });
   });
@@ -67,13 +77,6 @@ const startCourse = asyncHandler(async (req, res) => {
   lessonPlan.markModified("topics");
 
   await lessonPlan.save();
-
-  // Add userId & courseId to progress model
-  await Progress.create({
-    user: req.user._id,
-    lessonPlan: lessonPlan._id,
-    overall_progress: 0,
-  });
 
   // Generate the content for the first subtopic
   await generateContent(lessonPlan._id, [0, 0]);

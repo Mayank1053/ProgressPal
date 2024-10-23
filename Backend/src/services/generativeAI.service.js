@@ -10,7 +10,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const lessonPlanGenerationConfig = {
   model: "gemini-1.5-flash",
   generationConfig: {
-    temperature: 1,
+    temperature: 1.5,
     topP: 0.95,
     topK: 40,
     maxOutputTokens: 8192,
@@ -124,7 +124,7 @@ const adaptive_recommendationGenerationConfig = {
 };
 
 const lessonContentGenerationConfig = (stringifySystemPrompt) => ({
-  model: "gemini-1.5-pro",
+  model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
@@ -223,12 +223,17 @@ const generateContent = async (prompt, config) => {
         ? config.systemInstruction(stringifySystemPrompt)
         : config.systemInstruction,
   });
-
   try {
     const result = await model.generateContent(prompt);
     return JSON.parse(result.response.text());
   } catch (error) {
-    throw new GoogleGenerativeAIError(error.message);
+    console.error("Error generating content, retrying...", error);
+    try {
+      const result = await model.generateContent(prompt);
+      return JSON.parse(result.response.text());
+    } catch (retryError) {
+      throw new GoogleGenerativeAIError(retryError.message);
+    }
   }
 };
 

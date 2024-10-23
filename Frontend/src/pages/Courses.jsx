@@ -123,9 +123,9 @@ export function CoursesPage() {
       <CardContent>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted-foreground">Progress</span>
-          <span className="text-sm font-medium">{course.progress}%</span>
+          <span className="text-sm font-medium">{course.lessonProgress}%</span>
         </div>
-        <Progress value={course.progress} className="w-full" />
+        <Progress value={course.lessonProgress} className="w-full" />
       </CardContent>
     </Card>
   );

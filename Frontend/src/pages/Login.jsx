@@ -19,7 +19,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const redirectUrl = location.state?.redirectUrl || "/";
+  const redirectUrl = location.state?.redirectUrl || "/courses";
 
   const {
     mutate: loginMutation,

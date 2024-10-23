@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WelcomeCard } from "@/components/home/WelcomeCard";
 import { DetailInputDialog } from "@/components/dialogs/DetailInputDialog";
 import { PlanSelectorDialog } from "@/components/dialogs/PlanSelectorDialog";
 import { useMutation } from "@tanstack/react-query";
 import { startCourse, createLessonPlans } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
+import useAuth from "@/hooks/useAuth";
 
 const HomePage = () => {
+  const { user } = useAuth();
+  const { isLearning } = user;
   const [isLearningDialogOpen, setIsLearningDialogOpen] = useState(false);
   const [isLessonPlanDialogOpen, setIsLessonPlanDialogOpen] = useState(false);
   const [generatedLessonPlans, setGeneratedLessonPlans] = useState([]);
@@ -15,6 +18,12 @@ const HomePage = () => {
   const [goal, setGoal] = useState("");
   const [dailyStudyTime, setDailyStudyTime] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLearning) {
+      navigate("/courses");
+    }
+  }, [isLearning, navigate]);
 
   const handleStartLearning = () => {
     setIsLearningDialogOpen(true);

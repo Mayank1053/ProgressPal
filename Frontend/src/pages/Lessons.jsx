@@ -1,9 +1,9 @@
 // React imports
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 // Third-party library imports
 import { useParams, useNavigate } from "react-router-dom";
-import { Check, BookOpen, Loader2} from "lucide-react";
+import { Check, BookOpen, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 
 // Local component imports
@@ -36,14 +36,10 @@ const Lessons = () => {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(null);
 
-  const lessonPlan = courseData.lessonPlan || { topics: [] };
-  const title = courseData.title || "";
-
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
         const response = await getLessonPlan(courseId);
-        console.log("Course data:", response.data);
         setCourseData(response.data);
       } catch (error) {
         console.error("Failed to fetch course data:", error);
@@ -54,6 +50,9 @@ const Lessons = () => {
 
     fetchCourseData();
   }, [courseId]);
+
+  const lessonPlan = courseData.lessonPlan || { topics: [] };
+  const title = courseData.title || "";
 
   const totalLessons = useMemo(() => {
     return lessonPlan.topics.reduce(
@@ -73,13 +72,17 @@ const Lessons = () => {
     return (completedLessons / totalLessons) * 100;
   }, [completedLessons, totalLessons]);
 
-  const isLocked = useCallback((date) => {
+  const isSubtopicLocked = (data) => {
+    return new Date(data) > new Date();
+  };
+
+  // Check if the topic is locked based on the start date
+  const isTopicLocked = (date) => {
     return new Date(date) > new Date();
-  }, []);
+  };
 
   const handleSubtopicClick = (index, subIndex) => {
     const subtopic = lessonPlan.topics[index].subtopics[subIndex];
-    console.log("Subtopic clicked:", subtopic);
     navigate(`/courses/content/${subtopic.title}`, {
       state: {
         subtopic,
@@ -92,7 +95,6 @@ const Lessons = () => {
   const { mutate: getKnowledgeCheckMutation } = useMutation({
     mutationFn: getKnowledgeCheck,
     onSuccess: (response) => {
-      console.log("Knowledge check fetched successfully:", response);
       setQuizQuestions(response.data);
       setShowQuiz(true);
     },
@@ -109,7 +111,10 @@ const Lessons = () => {
     });
   };
 
-  const { mutate: saveKnowledgeCheckMutation, isPending: creatingReviewContent } = useMutation({
+  const {
+    mutate: saveKnowledgeCheckMutation,
+    isPending: creatingReviewContent,
+  } = useMutation({
     mutationFn: saveKnowledgeCheck,
     onSuccess: () => {
       console.log("Knowledge check saved successfully");
@@ -121,9 +126,6 @@ const Lessons = () => {
 
   const handleQuizComplete = (score, wrongAnswered) => {
     // Here you would typically update the backend with the quiz results
-    console.log(
-      `Quiz completed for topic ${currentTopicIndex}. Score: ${score}`
-    );
     saveKnowledgeCheckMutation({
       lessonPlanId: lessonPlan._id,
       topicIndex: currentTopicIndex,
@@ -171,6 +173,7 @@ const Lessons = () => {
       </Card>
       <Accordion type="multiple" className="space-y-4">
         {lessonPlan.topics.map((topic, index) => {
+          const isLocked = isTopicLocked(topic.start_date);
           const topicCompletedCount = topic.subtopics.filter(
             (st) => st.completed
           ).length;
@@ -180,94 +183,95 @@ const Lessons = () => {
           // why is the knowledge check shows up for all the topics when it is only available for the completed topic?
           const isKnowledgeCheckAvailable =
             isTopicCompleted && !topic.knowledgeCheckCompleted;
-            return (
+          return (
             <AccordionItem
               value={`topic-${index}`}
               key={index}
+              // lock the trigger if the topic is locked
               className={`border rounded-lg ${
-              isTopicCompleted ? "border-gray-600" : ""
-              }`}
+                isTopicCompleted ? "border-gray-600" : ""
+              } ${isLocked ? "opacity-80" : ""}`}
             >
               <AccordionTrigger className="px-2 py-2 hover:no-underline hover:bg-muted/50">
-              <div className="flex justify-between items-center w-full text-left gap-2">
-                <span className="font-semibold flex items-center gap-2">
-                {topic.topic}
-                {isTopicCompleted && (
-                  <Check className="h-4 w-4 text-green-500" />
-                )}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                {topicCompletedCount}/{topic.subtopics.length}
-                </span>
-              </div>
+                <div className="flex justify-between items-center w-full text-left gap-2">
+                  <span className="font-semibold flex items-center gap-2">
+                    {topic.topic}
+                    {isTopicCompleted && (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {topicCompletedCount}/{topic.subtopics.length}
+                  </span>
+                </div>
               </AccordionTrigger>
               <AccordionContent>
-              <div className="space-y-2 p-2">
-                {topic.subtopics.map((subtopic, subIndex) => {
-                const locked = isLocked(subtopic.date);
-                return (
-                  <Card
-                  key={subIndex}
-                  className={`bg-muted/50 ${locked ? "opacity-50" : ""} ${
-                  subtopic.completed ? "border border-green-500" : ""
-                  } text-left`}
-                  >
-                  <CardHeader
-                  className={`p-2 cursor-pointer ${
-                  locked ? "cursor-not-allowed" : ""
-                  }`}
-                  onClick={() =>
-                  !locked && handleSubtopicClick(index, subIndex)
-                  }
-                  >
-                  <CardTitle className="text-xs md:text-sm flex justify-between items-center">
-                  {subtopic.title}
-                  <Badge
-                    variant={
-                    subtopic.completed ? "default" : "outline"
-                    }
-                  >
-                    {subtopic.completed ? "Completed" : "Incomplete"}
-                  </Badge>
-                  </CardTitle>
-                  </CardHeader>
-                  </Card>
-                );
-                })}
-                {/* Show knowledge check button if available */}
-                {isKnowledgeCheckAvailable && (
-                <Button
-                  onClick={() => handleKnowledgeCheck(index)}
-                  className="w-full mt-2"
-                >
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Take Knowledge Check
-                </Button>
-                )}
-                {/* When the knowledgeCheckIsCompleted show the reviewContent in LessonContentPage with only content tab*/}
-                {topic.knowledgeCheckCompleted && (
-                <Button
-                  onClick={() =>
-                  navigate(`/courses/reviewContent`, {
-                    state: {
-                    reviewContent: topic.reviewContent,
-                    },
-                  })
-                  }
-                  className="w-full mt-2"
-                >
-                  {creatingReviewContent ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                  <BookOpen className="mr-2 h-4 w-4" />
+                <div className="space-y-2 p-2">
+                  {topic.subtopics.map((subtopic, subIndex) => {
+                    const locked = isSubtopicLocked(topic.start_date);
+                    return (
+                      <Card
+                        key={subIndex}
+                        className={`bg-muted/50 ${locked ? "opacity-50" : ""} ${
+                          subtopic.completed ? "border border-green-500" : ""
+                        } text-left`}
+                      >
+                        <CardHeader
+                          className={`p-2 cursor-pointer ${
+                            locked ? "cursor-not-allowed" : ""
+                          }`}
+                          onClick={() =>
+                            !locked && handleSubtopicClick(index, subIndex)
+                          }
+                        >
+                          <CardTitle className="text-xs md:text-sm flex justify-between items-center">
+                            {subtopic.title}
+                            <Badge
+                              variant={
+                                subtopic.completed ? "default" : "outline"
+                              }
+                            >
+                              {subtopic.completed ? "Completed" : "Incomplete"}
+                            </Badge>
+                          </CardTitle>
+                        </CardHeader>
+                      </Card>
+                    );
+                  })}
+                  {/* Show knowledge check button if available */}
+                  {isKnowledgeCheckAvailable && (
+                    <Button
+                      onClick={() => handleKnowledgeCheck(index)}
+                      className="w-full mt-2"
+                    >
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Take Knowledge Check
+                    </Button>
                   )}
-                  Review Content
-                </Button>
-                )}
-              </div>
+                  {/* When the knowledgeCheckIsCompleted show the reviewContent in LessonContentPage with only content tab*/}
+                  {topic.knowledgeCheckCompleted && (
+                    <Button
+                      onClick={() =>
+                        navigate(`/courses/reviewContent`, {
+                          state: {
+                            reviewContent: topic.reviewContent,
+                          },
+                        })
+                      }
+                      className="w-full mt-2"
+                    >
+                      {creatingReviewContent ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <BookOpen className="mr-2 h-4 w-4" />
+                      )}
+                      Review Content
+                    </Button>
+                  )}
+                </div>
               </AccordionContent>
             </AccordionItem>
-            );
+          );
         })}
       </Accordion>
     </div>

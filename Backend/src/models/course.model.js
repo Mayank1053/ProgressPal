@@ -40,10 +40,14 @@ const CourseSchema = new mongoose.Schema(
     end_date: {
       type: Date,
     },
-    progress: {
+    lessonProgress: {
       type: Number,
       default: 0,
     },
+    progress: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Progress",
+    }
   },
   { timestamps: true }
 );
