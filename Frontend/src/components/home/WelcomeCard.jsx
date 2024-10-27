@@ -22,14 +22,14 @@ export const WelcomeCard = ({ onStartLearning }) => {
                 onClick={onStartLearning}
                 readOnly
               />
-              {/* <Button onClick={onStartLearning}>
-                <Search className="mr-2 h-4 w-4" /> Start
-              </Button> */}
+              <Button onClick={onStartLearning}>
+                <Search className="mr-2 h-4 w-4" /> Learn Anything
+              </Button>
             </div>
           </div>
           <div className="hidden md:block">
-            <Image
-              src="/vite.svg"
+            <img
+              src="https://i.ibb.co/tzL2GDt/f0327e50-83e5-4e8f-85ac-91def098d320.png"
               alt="Learning illustration"
               width={500}
               height={300}
