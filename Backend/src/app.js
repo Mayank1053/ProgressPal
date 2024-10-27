@@ -13,7 +13,6 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-
 // Routes import
 import userRoutes from "./routes/user.routes.js";
 import courseRoutes from "./routes/course.routes.js";
@@ -26,5 +25,16 @@ app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1/knowledge-check", KnowledgeCheck);
 app.use("/api/v1/progress", progress);
 
+// Health check
+app.get("/health", (req, res) => {
+  try {
+    res.status(200).json({
+      status: "success",
+      message: "Server is up and running",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 export default app;
