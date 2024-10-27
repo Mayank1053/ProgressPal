@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --env-file=.env src/index.js"
+    "dev": "nodemon --env-file=.env src/index.js",
+    "start": "node src/index.js"
   },
   "author": "Mayank1053",
   "license": "ISC",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.17.2",
     "bcrypt": "^5.1.1",
+    "cjs-loader": "^0.1.0",
     "cloudinary": "^2.4.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
