@@ -43,9 +43,9 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // 3. Check if user already exists
   const existingUser = await User.findOne({ email });
+
   if (existingUser) {
-    if (avatarLocalPath) FileSystem.unlinkSync(avatarLocalPath);
-    throw new ApiError(409, "User already exists");
+    throw new ApiError(400, "User already exists");
   }
 
   // 5. Create and save the user object with the data
