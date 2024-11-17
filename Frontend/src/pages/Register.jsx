@@ -20,7 +20,8 @@ const Register = () => {
     error,
   } = useMutation({
     mutationFn: register,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Account created:", data);
       navigate("/", { replace: true });
     },
   });

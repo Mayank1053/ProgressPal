@@ -21,6 +21,7 @@ export const verifyJwtToken = asyncHandler(async (req, _, next) => {
     );
     next();
   } catch (error) {
+    console.log("Error in verifyJwtToken", error);
     throw new ApiError(401, "Unauthorized access");
   }
 });
