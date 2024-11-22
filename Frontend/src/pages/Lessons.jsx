@@ -72,8 +72,14 @@ const Lessons = () => {
     return (completedLessons / totalLessons) * 100;
   }, [completedLessons, totalLessons]);
 
-  const isSubtopicLocked = (data) => {
-    return new Date(data) > new Date();
+  const isSubtopicLocked = (startDate, index, subIndex) => {
+    if (index === 0 && subIndex === 0) return false;
+    if (subIndex === 0) {
+      const prevTopicSubtopics = lessonPlan.topics[index - 1].subtopics;
+      return prevTopicSubtopics.length === 0 || !prevTopicSubtopics[prevTopicSubtopics.length - 1].completed;
+    }
+    if (new Date(startDate) > new Date()) return true;
+    return !lessonPlan.topics[index].subtopics[subIndex - 1].completed;
   };
 
   // Check if the topic is locked based on the start date
@@ -208,7 +214,11 @@ const Lessons = () => {
               <AccordionContent>
                 <div className="space-y-2 p-2">
                   {topic.subtopics.map((subtopic, subIndex) => {
-                    const locked = isSubtopicLocked(topic.start_date);
+                    const locked = isTopicLocked && isSubtopicLocked(
+                      topic.start_date,
+                      index,
+                      subIndex
+                    );
                     return (
                       <Card
                         key={subIndex}
