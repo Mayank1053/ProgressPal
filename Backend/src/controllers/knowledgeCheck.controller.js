@@ -33,7 +33,6 @@ import { generateAdaptiveRecommendation } from "../services/generativeAI.service
 
 const getKnowledgeCheck = asyncHandler(async (req, res) => {
   const { LessonPlanId, topicIndex } = req.body;
-  console.log("Get Knowledge Check: ", LessonPlanId, topicIndex);
 
   // Find the knowledge check for the lesson plan id and topic index (topic index should be matched)
   const knowledgeCheck = await KnowledgeCheck.findOne({
@@ -62,7 +61,6 @@ const saveKnowledgeCheck = asyncHandler(async (req, res) => {
   const { lessonPlanId, topicIndex, knowledgeCheckId, score, wrongAnswered } =
     req.body;
 
-  console.log("Save Knowledge Check: ", req.body);
 
   const knowledgeCheck = await KnowledgeCheck.findById(knowledgeCheckId);
 

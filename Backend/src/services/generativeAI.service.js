@@ -3,17 +3,18 @@ import {
   GoogleGenerativeAIError,
   HarmCategory,
   HarmBlockThreshold,
+  ChatSession,
 } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const lessonPlanGenerationConfig = {
-  model: "gemini-1.5-flash",
+  model: "gemini-2.5-flash-preview-05-20",
   generationConfig: {
     temperature: 1.5,
     topP: 0.95,
     topK: 40,
-    maxOutputTokens: 8192,
+    maxOutputTokens: 10000,
     responseMimeType: "application/json",
     responseSchema: {
       type: "object",
@@ -54,7 +55,7 @@ const lessonPlanGenerationConfig = {
 };
 
 // const knowledgeCheckGenerationConfig = {
-//   model: "gemini-1.5-flash-002",
+//   model: "gemini-2.5-flash-preview-05-20",
 //   generationConfig: {
 //     temperature: 1,
 //     topP: 0.95,
@@ -102,7 +103,7 @@ const lessonPlanGenerationConfig = {
 // };
 
 const adaptive_recommendationGenerationConfig = {
-  model: "gemini-1.5-flash",
+  model: "gemini-2.5-flash-preview-05-20",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
@@ -124,12 +125,12 @@ const adaptive_recommendationGenerationConfig = {
 };
 
 const lessonContentGenerationConfig = (stringifySystemPrompt) => ({
-  model: "gemini-1.5-flash",
+  model: "gemini-2.5-flash-preview-05-20",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
     topK: 64,
-    maxOutputTokens: 10000,
+    maxOutputTokens: 20000,
     responseMimeType: "application/json",
     responseSchema: {
       type: "object",
@@ -190,7 +191,7 @@ const lessonContentGenerationConfig = (stringifySystemPrompt) => ({
     },
   },
   systemInstruction: `${stringifySystemPrompt},
-  "As an expert in educational content creation, your task is to generate educational blogs in MARKDOWN format based on the provided lesson plan. The student will request content for one subtopic at a time, progressing sequentially. Always maintain continuity by referencing previous content to ensure coherence. For each subtopic: 1. Overview: Introduce key concepts and relevance to the broader topic. 2. Learning Objectives: Outline specific knowledge or skills the student will gain. 3. Content: Provide detailed explanations, examples, and interactive elements. Ensure the lesson is: - Engaging: Tailor content to the students proficiency (Beginner, Moderate, Advanced). - Structured: Use clear headings, bullet points, and sections such as: - Introduction: Brief relevance. - Key Concepts: Core explanations, formulas, diagrams. - Examples: Code snippets or real-world scenarios. - Interactive Elements: Practical exercises or mini-quizzes. - Referencing: Connect to previously covered material to reinforce learning. - Teaching Methods: Use text, diagrams, code snippets, and visual aids. - Practical Examples: Include real-world applications and use cases (especially for Moderate and Advanced levels). - Aligned with Lesson Plan: Ensure the content fits the broader learning objectives and builds on prior lessons. Quiz Generation: After generating the content, create a knowledge check with 4-5 questions. Each question should include: A question with multiple-choice options, the correct answer, and an explanation."
+  "As an expert in educational content creation, your task is to write creative educational tutorials in MARKDOWN based on the provided lesson plan. The student will request content for one subtopic at a time, progressing sequentially. Always maintain continuity by referencing previous content to ensure coherence. For each subtopic: 1. Overview: Introduce key concepts and relevance to the broader topic. 2. Learning Objectives: Outline specific knowledge or skills the student will gain. 3. Content: Provide detailed explanations, examples, and interactive elements. Ensure the lesson is: - Engaging: Tailor content to the students proficiency (Beginner, Moderate, Advanced). - Structured: Use clear headings, bullet points, and sections such as: - Introduction: Brief relevance. - Key Concepts: Core explanations, formulas, diagrams. - Examples: Code snippets or real-world scenarios. - Interactive Elements: Practical exercises or mini-quizzes. - Referencing: Connect to previously covered material to reinforce learning. - Teaching Methods: Use text, diagrams, code snippets, and visual aids. - Practical Examples: Include real-world applications and use cases (especially for Moderate and Advanced levels). - Aligned with Lesson Plan: Ensure the content fits the broader learning objectives and builds on prior lessons. Quiz Generation: After generating the content, create a knowledge check with 4-5 questions. Each question should include: A question with 4 options, the correct answer, and an explanation."
 `,
 });
 

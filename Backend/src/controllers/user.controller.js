@@ -9,7 +9,6 @@ import {
   getPasswordResetTemplate,
 } from "../utils/emailTemplate.js";
 import jwt from "jsonwebtoken";
-import FileSystem from "fs";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -272,7 +271,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
 const forgotPassword = asyncHandler(async (req, res) => {
   // validate email
-  const email = req.body;
+  const { email } = req.body;
   // send email with reset link
   // Catch any errors that occur during the process and return an empty object
   // This is to prevent leaking information about the existence of an email in the system
@@ -286,17 +285,19 @@ const forgotPassword = asyncHandler(async (req, res) => {
     // check email rate limit
     // Here we'll count of the documents with this email of type password reset, we are only allowing 2 requests per 5 minutes
     const resetRequests = await VerificationCodeModel.countDocuments({
-      userId: req.user._id,
+      userId: user._id,
       type: "password_reset",
       createdAt: {
         $gt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes
       },
     });
-    appAssert(resetRequests < 2, "Rate limit exceeded", TOO_MANY_REQUESTS);
+    //appAssert(resetRequests < 2, "Rate limit exceeded", TOO_MANY_REQUESTS);
+    if (resetRequests >= 2)
+      throw new ApiError(429, "Rate limit exceeded", "Too many requests");
 
     // generate a reset code
     const resetCode = await VerificationCodeModel.create({
-      userId: req.user._id,
+      userId: user._id,
       type: "password_reset",
       expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
     });
@@ -312,13 +313,14 @@ const forgotPassword = asyncHandler(async (req, res) => {
     });
 
     if (!data?.id) {
+      // Delete the verification document if the email failed to send
+      await resetCode.deleteOne();
       throw new ApiError(500, "Failed to send password reset email", error);
     }
 
     // return { url, email: data.id };
     return res.status(OK).json({ message: "Password reset email sent" });
   } catch (error) {
-    console.log("SendPasswordResetEmailError", error.message);
     return res.status(error.statusCode || 500).json({ message: error.message });
   }
 });
