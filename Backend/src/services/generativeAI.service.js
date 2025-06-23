@@ -9,7 +9,7 @@ import {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const lessonPlanGenerationConfig = {
-  model: "gemini-2.5-flash-preview-05-20",
+  model: "gemini-2.5-flash",
   generationConfig: {
     temperature: 1.5,
     topP: 0.95,
@@ -103,7 +103,7 @@ const lessonPlanGenerationConfig = {
 // };
 
 const adaptive_recommendationGenerationConfig = {
-  model: "gemini-2.5-flash-preview-05-20",
+  model: "gemini-2.5-flash",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
@@ -125,7 +125,7 @@ const adaptive_recommendationGenerationConfig = {
 };
 
 const lessonContentGenerationConfig = (stringifySystemPrompt) => ({
-  model: "gemini-2.5-flash-preview-05-20",
+  model: "gemini-2.5-flash",
   generationConfig: {
     temperature: 1,
     topP: 0.95,
