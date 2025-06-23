@@ -121,7 +121,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   // 6. Send the tokens in the response secure cookie
   const options = {
-    httpOnly: false, // The cookie is not accessible via JavaScript in the browser
+    httpOnly: true, // The cookie is not accessible via JavaScript in the browser
     secure: true, // secure? true for https, false for http
     sameSite: "none", // Uncomment this line if you are using the frontend and backend on different domains
   };
@@ -183,7 +183,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   // 2. Clear the access and refresh tokens from the cookies
   const options = {
-    httpOnly: false,
+    httpOnly: true,
     secure: true,
     sameSite: "none",
   };
@@ -224,7 +224,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     // 4. Send the new access token and refresh token in the response
     const options = {
-      httpOnly: false,
+      httpOnly: true,
       secure: true,
       sameSite: "none", // Uncomment this line if you are using the frontend and backend on different domains
     };

@@ -6,9 +6,9 @@ const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 
-app.use(express.json({ limit: "16kb" }));
+app.use(express.json({ limit: "32kb" }));
 
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "32kb" }));
 
 app.use(express.static("public"));
 app.use(cookieParser());
@@ -26,7 +26,7 @@ app.use("/api/v1/knowledge-check", KnowledgeCheck);
 app.use("/api/v1/progress", progress);
 
 // Health check
-app.get("/health", (req, res) => {
+app.get("/", (req, res) => {
   try {
     res.status(200).json({
       status: "success",
